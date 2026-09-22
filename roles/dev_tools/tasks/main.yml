@@ -77,6 +77,38 @@
     groups: docker
     append: yes
 
+# --- Docker Desktop (standalone .deb, not in the APT repository) --------------
+
+- name: Check whether Docker Desktop is already installed
+  command: dpkg-query -W -f='${Status}' docker-desktop
+  register: docker_desktop_installed
+  changed_when: false
+  failed_when: false
+  when: dev_tools_install_docker_desktop | bool
+
+- name: Download the Docker Desktop .deb package
+  get_url:
+    url: "{{ dev_tools_docker_desktop_url }}"
+    dest: "{{ dev_tools_docker_desktop_deb }}"
+    mode: "0644"
+  when:
+    - dev_tools_install_docker_desktop | bool
+    - "'install ok installed' not in (docker_desktop_installed.stdout | default(''))"
+
+- name: Install Docker Desktop from the downloaded .deb (resolves dependencies)
+  apt:
+    deb: "{{ dev_tools_docker_desktop_deb }}"
+    state: present
+  when:
+    - dev_tools_install_docker_desktop | bool
+    - "'install ok installed' not in (docker_desktop_installed.stdout | default(''))"
+
+- name: Remove the downloaded Docker Desktop .deb
+  file:
+    path: "{{ dev_tools_docker_desktop_deb }}"
+    state: absent
+  when: dev_tools_install_docker_desktop | bool
+
 - name: Install VS Code and other classic snaps
   community.general.snap:
     name: "{{ item }}"

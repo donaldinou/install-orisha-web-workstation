@@ -190,10 +190,22 @@ Each role is configurable through its `roles/<role>/defaults/main.yml` file
 
 ## Docker
 
-Docker is installed from the **official Docker repository**, not from the Ubuntu
-packages. Compose v2 is provided via `docker-compose-plugin`, so the command is
-`docker compose` (not `docker-compose`). The current user is added to the
-`docker` group.
+Docker Engine is installed from the **official Docker repository**, not from the
+Ubuntu packages: `docker-ce`, `docker-ce-cli`, `containerd.io`,
+`docker-buildx-plugin`, `docker-compose-plugin`. Compose v2 is provided via
+`docker-compose-plugin`, so the command is `docker compose` (not
+`docker-compose`). The current user is added to the `docker` group.
+
+**Docker Desktop** is also installed (`dev_tools_install_docker_desktop`,
+default `true`). It is **not** available from the APT repository, so the role
+downloads the official standalone `.deb`
+(`desktop.docker.com/.../docker-desktop-amd64.deb`) and installs it with `apt`
+(dependencies resolved). The download step is skipped if Docker Desktop is
+already installed. Docker Desktop and the `docker-ce` engine coexist (Desktop
+runs its own engine in an isolated VM).
+
+> Docker Desktop requires Ubuntu 24.04/26.04 and, for commercial use in larger
+> enterprises (>250 employees or >$10M revenue), a paid Docker subscription.
 
 ## VPN (OpenVPN classic + OpenVPN 3)
 

@@ -95,6 +95,18 @@ dev_tools_docker_packages:
   - docker-buildx-plugin
   - docker-compose-plugin
 
+# Docker Desktop (GUI). Not available from the APT repository: it ships as a
+# standalone .deb that must be downloaded and installed. It coexists with the
+# docker-ce engine (Docker Desktop runs its own engine in an isolated VM).
+#
+# DISABLED for now: commercial use in larger enterprises (>250 employees or
+# >$10M revenue) requires a paid Docker subscription, which we don't have yet.
+# Set this back to true once the license is available; the install logic is
+# already in place in tasks/main.yml.
+dev_tools_install_docker_desktop: false
+dev_tools_docker_desktop_url: https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb
+dev_tools_docker_desktop_deb: /tmp/docker-desktop-amd64.deb
+
 # Snaps installed in classic mode (require full system access).
 dev_tools_classic_snaps:
   - code
