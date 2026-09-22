@@ -1,5 +1,5 @@
 ---
-# Outils système de base installés sur le poste.
+# Basic system tools installed on the workstation.
 system_base_packages:
   - curl
   - wget
@@ -10,5 +10,5 @@ system_base_packages:
   - ca-certificates
   - gnupg
 
-# Durée (en secondes) pendant laquelle le cache APT est considéré à jour.
+# Duration (in seconds) during which the APT cache is considered up to date.
 system_apt_cache_valid_time: 3600

@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 #
-# bootstrap.sh - Amorce la post-installation d'un poste Ubuntu.
+# bootstrap.sh - Bootstraps the post-installation of an Ubuntu workstation.
 #
-# Ce script :
-#   1. verifie l'environnement (distribution APT, non-root, sudo present) ;
-#   2. installe Ansible et Git si absents ;
-#   3. installe les collections Ansible requises (requirements.yml) ;
-#   4. lance le playbook local.yml en local.
+# This script:
+#   1. checks the environment (APT-based distribution, non-root, sudo present);
+#   2. installs Ansible and Git if missing;
+#   3. installs the required Ansible collections (requirements.yml);
+#   4. runs the local.yml playbook locally.
 #
-# Usage :
-#   ./bootstrap.sh                    # installation complete
-#   ./bootstrap.sh --check            # simulation (dry-run)
-#   ./bootstrap.sh --tags dev_tools   # options transmises a ansible-playbook
+# Usage:
+#   ./bootstrap.sh                    # full installation
+#   ./bootstrap.sh --check            # dry-run
+#   ./bootstrap.sh --tags dev_tools   # options forwarded to ansible-playbook
 #
-# Toute option supplementaire est transmise telle quelle a ansible-playbook.
+# Any extra option is forwarded as-is to ansible-playbook.
 
 set -euo pipefail
 
@@ -24,44 +24,44 @@ readonly PLAYBOOK="local.yml"
 readonly REQUIREMENTS="requirements.yml"
 readonly ANSIBLE_PPA="ppa:ansible/ansible"
 
-# --- Helpers de log ---------------------------------------------------------
+# --- Logging helpers --------------------------------------------------------
 
 log() {
     printf '\033[1;34m==>\033[0m %s\n' "$1"
 }
 
 err() {
-    printf '\033[1;31mErreur:\033[0m %s\n' "$1" >&2
+    printf '\033[1;31mError:\033[0m %s\n' "$1" >&2
 }
 
-# --- Etapes (une fonction = une responsabilite) -----------------------------
+# --- Steps (one function = one responsibility) ------------------------------
 
-# Verifie que la machine et l'utilisateur remplissent les prerequis.
+# Ensure the machine and the user meet the prerequisites.
 check_environment() {
     if ! command -v apt-get >/dev/null 2>&1; then
-        err "apt-get introuvable. Ce script cible Ubuntu / Debian."
+        err "apt-get not found. This script targets Ubuntu / Debian."
         return 1
     fi
 
     if [ "$(id -u)" -eq 0 ]; then
-        err "Ne pas lancer ce script en root. Utilisez un utilisateur avec les droits sudo."
+        err "Do not run this script as root. Use a user with sudo privileges."
         return 1
     fi
 
     if ! command -v sudo >/dev/null 2>&1; then
-        err "sudo est requis mais introuvable."
+        err "sudo is required but not found."
         return 1
     fi
 }
 
-# Installe Ansible et Git si Ansible est absent.
+# Install Ansible and Git if Ansible is missing.
 install_ansible() {
     if command -v ansible-playbook >/dev/null 2>&1; then
-        log "Ansible deja present : $(ansible --version | head -1)"
+        log "Ansible already present: $(ansible --version | head -1)"
         return 0
     fi
 
-    log "Ansible absent, installation via APT..."
+    log "Ansible missing, installing via APT..."
     sudo apt-get update
     sudo apt-get install -y software-properties-common
     sudo add-apt-repository -y "$ANSIBLE_PPA"
@@ -69,24 +69,24 @@ install_ansible() {
     sudo apt-get install -y ansible git
 }
 
-# Installe les collections Ansible declarees dans requirements.yml.
+# Install the Ansible collections declared in requirements.yml.
 install_collections() {
     if [ ! -f "$REQUIREMENTS" ]; then
-        log "Aucun $REQUIREMENTS trouve, etape ignoree."
+        log "No $REQUIREMENTS found, skipping this step."
         return 0
     fi
 
-    log "Installation des collections Ansible depuis $REQUIREMENTS..."
+    log "Installing Ansible collections from $REQUIREMENTS..."
     ansible-galaxy collection install -r "$REQUIREMENTS"
 }
 
-# Lance le playbook, en transmettant les arguments recus par le script.
+# Run the playbook, forwarding the arguments received by the script.
 run_playbook() {
-    log "Lancement du playbook $PLAYBOOK..."
+    log "Running the $PLAYBOOK playbook..."
     ansible-playbook "$PLAYBOOK" --ask-become-pass "$@"
 }
 
-# --- Point d'entree ---------------------------------------------------------
+# --- Entry point ------------------------------------------------------------
 
 main() {
     cd "$SCRIPT_DIR"
@@ -94,7 +94,7 @@ main() {
     install_ansible
     install_collections
     run_playbook "$@"
-    log "Termine. Deconnectez-vous puis reconnectez-vous pour appliquer l'appartenance au groupe docker."
+    log "Done. Log out and back in to apply the docker group membership."
 }
 
 main "$@"

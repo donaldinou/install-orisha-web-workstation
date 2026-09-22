@@ -1,17 +1,17 @@
 ---
-# Outils de développement en ligne de commande.
+# Command-line development tools.
 dev_tools_cli_packages:
   - git
   - jq
   - tree
 
-# Configuration du dépôt officiel Docker.
+# Official Docker repository configuration.
 dev_tools_docker_keyring_dir: /etc/apt/keyrings
 dev_tools_docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
 dev_tools_docker_gpg_path: /etc/apt/keyrings/docker.asc
 dev_tools_docker_apt_url: https://download.docker.com/linux/ubuntu
 
-# Paquets Docker (Engine + plugin Compose v2).
+# Docker packages (Engine + Compose v2 plugin).
 dev_tools_docker_packages:
   - docker-ce
   - docker-ce-cli
@@ -19,6 +19,6 @@ dev_tools_docker_packages:
   - docker-buildx-plugin
   - docker-compose-plugin
 
-# Snaps installés en mode classic (accès complet au système requis).
+# Snaps installed in classic mode (require full system access).
 dev_tools_classic_snaps:
   - code

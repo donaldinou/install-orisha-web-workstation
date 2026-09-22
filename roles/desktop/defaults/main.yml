@@ -1,10 +1,17 @@
 ---
-# Applications desktop installées via APT.
+# Desktop applications installed via APT.
 desktop_apt_packages:
   - vlc
   - gimp
 
-# Applications desktop installées via Snap (mode strict, non classic).
+# Desktop applications installed via Snap (strict mode, non classic).
 desktop_snap_packages:
   - slack
   - discord
+
+# Official Google Chrome repository configuration.
+desktop_chrome_keyring_dir: /etc/apt/keyrings
+desktop_chrome_gpg_url: https://dl.google.com/linux/linux_signing_key.pub
+desktop_chrome_gpg_path: /etc/apt/keyrings/google-chrome.asc
+desktop_chrome_apt_url: https://dl.google.com/linux/chrome/deb
+desktop_chrome_package: google-chrome-stable

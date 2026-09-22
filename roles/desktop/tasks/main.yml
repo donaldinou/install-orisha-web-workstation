@@ -3,7 +3,31 @@
     name: "{{ desktop_apt_packages }}"
     state: present
 
-- name: Installer les applications desktop via Snap
+- name: Create the APT keyrings directory
+  file:
+    path: "{{ desktop_chrome_keyring_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Add Google's official GPG key
+  get_url:
+    url: "{{ desktop_chrome_gpg_url }}"
+    dest: "{{ desktop_chrome_gpg_path }}"
+    mode: "0644"
+
+- name: Add the Google Chrome APT repository
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by={{ desktop_chrome_gpg_path }}] {{ desktop_chrome_apt_url }} stable main"
+    filename: google-chrome
+    state: present
+
+- name: Install Google Chrome
+  apt:
+    name: "{{ desktop_chrome_package }}"
+    state: present
+    update_cache: yes
+
+- name: Install desktop applications via Snap
   community.general.snap:
     name: "{{ item }}"
     state: present

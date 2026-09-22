@@ -40,7 +40,24 @@ Toute option supplémentaire passée à `bootstrap.sh` est transmise à
 
 ```bash
 ./bootstrap.sh --check              # simulation (dry-run), n'applique rien
-./bootstrap.sh --tags dev_tools     # n'exécute qu'un rôle (si taggé)
+./bootstrap.sh --tags dev_tools     # n'exécute qu'un rôle (voir « Exécution sélective »)
+```
+
+## Exécution sélective (tags)
+
+Chaque rôle est associé à un tag (`system`, `dev_tools`, `desktop`), ce qui
+permet de n'exécuter qu'une partie de la configuration :
+
+```bash
+./bootstrap.sh --tags dev_tools              # uniquement les outils de dev
+./bootstrap.sh --tags system,dev_tools       # système + outils de dev
+./bootstrap.sh --skip-tags desktop           # tout sauf les applis desktop
+```
+
+La même chose fonctionne directement avec `ansible-playbook` :
+
+```bash
+ansible-playbook local.yml --ask-become-pass --tags dev_tools
 ```
 
 ## Structure du projet
@@ -58,11 +75,14 @@ Toute option supplémentaire passée à `bootstrap.sh` est transmise à
 
 ## Les rôles
 
-| Rôle        | Contenu                                                                 |
-|-------------|-------------------------------------------------------------------------|
-| `system`    | `apt update` + `upgrade dist`, puis curl, wget, htop, build-essential, unzip, etc. |
-| `dev_tools` | git, jq, tree ; Docker CE + Compose v2 (dépôt officiel) ; VS Code (Snap classic). |
-| `desktop`   | VLC, GIMP (APT) ; Slack, Discord (Snap).                                |
+| Rôle        | Tag         | Contenu                                                                 |
+|-------------|-------------|-------------------------------------------------------------------------|
+| `system`    | `system`    | `apt update` + `upgrade dist`, puis curl, wget, htop, build-essential, unzip, etc. |
+| `dev_tools` | `dev_tools` | git, jq, tree ; Docker CE + Compose v2 (dépôt officiel) ; VS Code (Snap classic). |
+| `desktop`   | `desktop`   | VLC, GIMP, Google Chrome (APT) ; Slack, Discord (Snap).                 |
+
+Chaque rôle est configurable via son fichier `roles/<rôle>/defaults/main.yml`
+(listes de paquets, URLs, etc.).
 
 ## Docker
 

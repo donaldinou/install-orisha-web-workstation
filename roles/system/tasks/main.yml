@@ -1,4 +1,4 @@
-- name: Update APT repositories and the system
+- name: Update APT repositories and upgrade the system
   apt:
     update_cache: yes
     upgrade: dist

@@ -1,39 +1,39 @@
-- name: Install Git et outils CLI
+- name: Install Git and CLI tools
   apt:
     name: "{{ dev_tools_cli_packages }}"
     state: present
 
-- name: Créer le répertoire des clés APT
+- name: Create the APT keyrings directory
   file:
     path: "{{ dev_tools_docker_keyring_dir }}"
     state: directory
     mode: "0755"
 
-- name: Ajouter la clé GPG officielle de Docker
+- name: Add Docker's official GPG key
   get_url:
     url: "{{ dev_tools_docker_gpg_url }}"
     dest: "{{ dev_tools_docker_gpg_path }}"
     mode: "0644"
 
-- name: Ajouter le dépôt APT Docker
+- name: Add the Docker APT repository
   apt_repository:
     repo: "deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }} signed-by={{ dev_tools_docker_gpg_path }}] {{ dev_tools_docker_apt_url }} {{ ansible_distribution_release }} stable"
     filename: docker
     state: present
 
-- name: Installer Docker Engine et le plugin Compose v2
+- name: Install Docker Engine and the Compose v2 plugin
   apt:
     name: "{{ dev_tools_docker_packages }}"
     state: present
     update_cache: yes
 
-- name: Ajouter l'utilisateur courant au groupe docker
+- name: Add the current user to the docker group
   user:
     name: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
     groups: docker
     append: yes
 
-- name: Install VS Code et autres snaps classic
+- name: Install VS Code and other classic snaps
   community.general.snap:
     name: "{{ item }}"
     classic: yes
