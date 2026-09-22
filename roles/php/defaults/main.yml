@@ -1,0 +1,56 @@
+---
+# PHP is installed from Ondřej Surý's official APT repository (packages.sury.org),
+# which replaces the old Launchpad PPA and covers Ubuntu 24.04 (noble) and 26.04.
+# Signed repo -> compliant with the package-sources steering.
+php_sury_keyring_url: https://packages.sury.org/debsuryorg-archive-keyring.deb
+php_sury_keyring_deb: /tmp/debsuryorg-archive-keyring.deb
+php_sury_keyring_path: /usr/share/keyrings/debsuryorg-archive-keyring.gpg
+php_sury_repo: "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ {{ ansible_distribution_release }} main"
+
+# PHP versions to install side by side.
+php_versions:
+  - "7.4"
+  - "8.0"
+  - "8.1"
+  - "8.2"
+  - "8.3"
+  - "8.4"
+
+# Extensions installed for every version. "json" is handled separately because
+# it no longer exists as a standalone package on PHP >= 8.0 (built into core).
+php_common_extensions:
+  - cli
+  - bcmath
+  - bz2
+  - curl
+  - dev
+  - fpm
+  - gd
+  - intl
+  - mbstring
+  - mysql
+  - opcache
+  - soap
+  - xml
+  - xsl
+  - zip
+  - apcu
+
+# Extensions only valid on PHP 7.4 (dropped from core packaging on 8.x).
+php_legacy_extensions:
+  - json
+
+# Built package list:
+#   - the base "phpX.Y" metapackage for each version
+#   - "phpX.Y-<ext>" for every common extension
+#   - "php7.4-json" only for 7.4
+php_packages: >-
+  {{
+    (php_versions | map('regex_replace', '^(.*)$', 'php\1') | list)
+    +
+    (php_versions | product(php_common_extensions)
+       | map('join', '-') | map('regex_replace', '^', 'php') | list)
+    +
+    (['7.4'] | product(php_legacy_extensions)
+       | map('join', '-') | map('regex_replace', '^', 'php') | list)
+  }}

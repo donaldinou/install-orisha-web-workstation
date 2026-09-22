@@ -1,0 +1,36 @@
+---
+- name: Install prerequisites for the Sury PHP repository
+  apt:
+    name:
+      - lsb-release
+      - ca-certificates
+      - curl
+    state: present
+
+- name: Download the Sury (debsuryorg) archive keyring package
+  get_url:
+    url: "{{ php_sury_keyring_url }}"
+    dest: "{{ php_sury_keyring_deb }}"
+    mode: "0644"
+
+- name: Install the Sury archive keyring
+  apt:
+    deb: "{{ php_sury_keyring_deb }}"
+    state: present
+
+- name: Add the Sury PHP APT repository
+  apt_repository:
+    repo: "{{ php_sury_repo }}"
+    filename: php
+    state: present
+
+- name: Install PHP versions and extensions (7.4 -> 8.4)
+  apt:
+    name: "{{ php_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Remove the downloaded keyring package
+  file:
+    path: "{{ php_sury_keyring_deb }}"
+    state: absent

@@ -188,6 +188,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
     ├── system/           # System update + base system tools
     ├── dev_tools/        # Git, CLI tools, Docker, VS Code
     ├── desktop/          # Browsers, media and chat applications
+    ├── php/              # PHP 7.4 -> 8.4 from the Sury official repo
     └── kiro/             # Kiro IDE install from official .deb (optional APT-hook updater)
 ```
 
@@ -202,6 +203,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 | `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), fastfetch, gnupg, openssh, etc. |
 | `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; AWS CLI v2 (official installer); Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina (Snap); Tor Browser (Flatpak). |
+| `php`          | `php`          | Installs PHP 7.4 → 8.4 (many extensions each) from the Sury official repo. |
 | `kiro`         | `kiro`         | Installs the Kiro IDE from the official `.deb` (built-in auto-updater keeps it current). |
 
 Each role is configurable through its `roles/<role>/defaults/main.yml` file
@@ -349,6 +351,25 @@ already connected, so re-runs are idempotent.
 ansible-galaxy collection install -r requirements.yml
 ansible-playbook local.yml --ask-become-pass
 ```
+
+## PHP (Sury official repository, 7.4 → 8.4)
+
+PHP is installed from **Ondřej Surý's official APT repository**
+(`packages.sury.org/php`), which replaces the old Launchpad PPA and serves both
+Ubuntu 24.04 and 26.04 from the same source. The repo is added via its signed
+`debsuryorg-archive-keyring`.
+
+The `php` role installs **six versions side by side** (7.4, 8.0, 8.1, 8.2, 8.3,
+8.4), each with a large set of extensions (`cli`, `bcmath`, `bz2`, `curl`,
+`dev`, `fpm`, `gd`, `intl`, `mbstring`, `mysql`, `opcache`, `soap`, `xml`,
+`xsl`, `zip`, `apcu`). The package list is generated from
+`php_versions × php_common_extensions` (defined in `roles/php/defaults/main.yml`)
+rather than hand-written, so adding a version or an extension is a one-line
+change.
+
+Note: `php-json` is only installed for **7.4** — on PHP 8.0+ the JSON extension
+is built into core and has no standalone package, so including it would break
+the install.
 
 ## Kiro IDE (no repo — official .deb)
 

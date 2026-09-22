@@ -10,6 +10,8 @@
       tags: [system]
     - role: dev_tools
       tags: [dev_tools]
+    - role: php
+      tags: [php]
     - role: desktop
       tags: [desktop]
     - role: kiro
