@@ -106,6 +106,45 @@
     src: "{{ user_home }}/{{ user_ssh_key_path }}.pub"
   register: user_ssh_pubkey
 
+# --- fnm (Fast Node Manager), per-user install --------------------------------
+# Installed with fnm's official installation script (the method recommended by
+# the project). Run as the target user so it lands in that account's home.
+# --skip-shell avoids the script editing .bashrc (which would duplicate lines on
+# re-runs); the shell init is managed idempotently below via blockinfile.
+
+- name: Ensure curl and unzip are available (required by the fnm installer)
+  apt:
+    name:
+      - curl
+      - unzip
+    state: present
+  when: user_install_fnm | bool
+
+- name: Install fnm using the official script (per-user, skip shell edit)
+  shell: >-
+    curl -fsSL {{ user_fnm_install_url }} | bash -s --
+    --install-dir "{{ user_home }}/{{ user_fnm_install_dir }}" --skip-shell
+  args:
+    creates: "{{ user_home }}/{{ user_fnm_install_dir }}/fnm"
+  become: true
+  become_user: "{{ user_account_name }}"
+  when: user_install_fnm | bool
+
+- name: Add fnm initialization to the account's .bashrc
+  blockinfile:
+    path: "{{ user_home }}/.bashrc"
+    create: yes
+    owner: "{{ user_account_name }}"
+    group: "{{ user_account_name }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - fnm"
+    block: |
+      # fnm (Fast Node Manager)
+      export PATH="$HOME/{{ user_fnm_install_dir }}:$PATH"
+      command -v fnm >/dev/null && eval "$(fnm env --use-on-cd)"
+  become: true
+  become_user: "{{ user_account_name }}"
+  when: user_install_fnm | bool
+
 - name: Show the derived identity summary
   debug:
     msg:
@@ -114,6 +153,7 @@
       - "LDAP    : {{ user_ldap }}"
       - "Git     : {{ user_firstname }} {{ user_lastname }} <{{ user_email }}>"
       - "SSH key : {{ user_home }}/{{ user_ssh_key_path }} (ed25519)"
+      - "fnm     : {{ (user_home ~ '/' ~ user_fnm_install_dir ~ '/fnm') if user_install_fnm | bool else 'skipped' }}"
 
 - name: Show the public SSH key to register on GitHub / GitLab
   debug:

@@ -51,3 +51,12 @@ user_force_password_change: true
 # ed25519, no passphrase. Never overwritten if it already exists.
 user_ssh_key_type: ed25519
 user_ssh_key_path: ".ssh/id_ed25519"
+
+# fnm (Fast Node Manager) is a per-user Node.js version manager. Installed into
+# the target account's home using fnm's official installation script (the
+# project-recommended method). Its shell init is added to the account's
+# ~/.bashrc (the installer is run with --skip-shell so we manage that block
+# idempotently).
+user_install_fnm: true
+user_fnm_install_url: "https://fnm.vercel.app/install"
+user_fnm_install_dir: ".local/share/fnm"
