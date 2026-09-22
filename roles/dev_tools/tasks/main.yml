@@ -10,6 +10,17 @@
     state: present
     update_cache: yes
 
+- name: Add the Ansible PPA
+  apt_repository:
+    repo: "{{ dev_tools_ansible_ppa }}"
+    state: present
+
+- name: Install Ansible (kept as a workstation tool)
+  apt:
+    name: "{{ dev_tools_ansible_package }}"
+    state: present
+    update_cache: yes
+
 - name: Install DevOps and networking CLI tools
   apt:
     name: "{{ dev_tools_devops_packages }}"

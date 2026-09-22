@@ -14,6 +14,19 @@ desktop_snap_packages:
   - discord
   - chromium
 
+# Snaps that need extra interface connections after install (confined snaps do
+# not get these plugs auto-connected). Each entry lists the plugs to connect.
+# Remmina (remote desktop client) needs audio, printing, keyring, etc.
+desktop_snap_connections:
+  - name: remmina
+    plugs:
+      - avahi-observe
+      - cups-control
+      - mount-observe
+      - password-manager-service
+      - audio-playback
+      - audio-record
+
 # Flathub remote used for Flatpak applications.
 desktop_flatpak_remote_name: flathub
 desktop_flatpak_remote_url: https://flathub.org/repo/flathub.flatpakrepo

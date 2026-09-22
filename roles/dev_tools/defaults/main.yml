@@ -8,6 +8,12 @@ dev_tools_git_packages:
   - git-flow
   - git-lfs
 
+# Ansible kept installed on the workstation as a tool (bootstrap.sh also
+# installs it to run this playbook, but we declare it explicitly so it is
+# guaranteed present regardless of how the playbook was launched).
+dev_tools_ansible_ppa: "ppa:ansible/ansible"
+dev_tools_ansible_package: ansible
+
 # Python development stack.
 dev_tools_python_packages:
   - python3

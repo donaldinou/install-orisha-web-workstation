@@ -49,6 +49,32 @@
     state: present
   loop: "{{ desktop_snap_packages }}"
 
+- name: Install Snaps that require interface connections (e.g. remmina)
+  community.general.snap:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ desktop_snap_connections }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Check the current state of the Snap interface connections
+  # A plug shows as connected when its line in "snap connections" has a non-"-"
+  # slot in the third column.
+  shell: "snap connections {{ item.0.name }} | awk '$2 == \"{{ item.0.name }}:{{ item.1 }}\" && $3 != \"-\"'"
+  register: snap_conn_state
+  changed_when: false
+  failed_when: false
+  loop: "{{ desktop_snap_connections | subelements('plugs') }}"
+  loop_control:
+    label: "{{ item.0.name }}:{{ item.1 }}"
+
+- name: Connect the missing Snap interfaces
+  command: "snap connect {{ item.item.0.name }}:{{ item.item.1 }} :{{ item.item.1 }}"
+  when: item.stdout | trim == ""
+  loop: "{{ snap_conn_state.results }}"
+  loop_control:
+    label: "{{ item.item.0.name }}:{{ item.item.1 }}"
+
 - name: Install Flatpak
   apt:
     name: flatpak
