@@ -5,13 +5,63 @@ desktop_apt_packages:
   - gimp
 
 # Desktop applications installed via Snap (strict mode, non classic).
+# Chromium ships no official vendor APT repository (the Ubuntu APT package is a
+# Snap wrapper), so the Snap is the canonical source.
 desktop_snap_packages:
   - slack
   - discord
+  - chromium
 
-# Official Google Chrome repository configuration.
-desktop_chrome_keyring_dir: /etc/apt/keyrings
-desktop_chrome_gpg_url: https://dl.google.com/linux/linux_signing_key.pub
-desktop_chrome_gpg_path: /etc/apt/keyrings/google-chrome.asc
-desktop_chrome_apt_url: https://dl.google.com/linux/chrome/deb
-desktop_chrome_package: google-chrome-stable
+# Flathub remote used for Flatpak applications.
+desktop_flatpak_remote_name: flathub
+desktop_flatpak_remote_url: https://flathub.org/repo/flathub.flatpakrepo
+
+# Desktop applications installed via Flatpak (Flathub), used when no APT or Snap
+# option is acceptable. Tor Browser has no reliable official Snap but an
+# official Flatpak maintained by the Tor Project.
+desktop_flatpak_packages:
+  - org.torproject.torbrowser-launcher
+
+# Directory holding the APT signing keys.
+desktop_keyring_dir: /etc/apt/keyrings
+
+# Web browsers installed from their official APT repository.
+# Each entry describes a self-contained repository (key + repo + package),
+# so adding a browser means appending one item here (no task change needed).
+desktop_apt_browsers:
+  - name: google-chrome
+    package: google-chrome-stable
+    gpg_url: https://dl.google.com/linux/linux_signing_key.pub
+    gpg_path: /etc/apt/keyrings/google-chrome.asc
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.asc] https://dl.google.com/linux/chrome/deb stable main"
+  - name: brave-browser
+    package: brave-browser
+    gpg_url: https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+    gpg_path: /etc/apt/keyrings/brave-browser-archive-keyring.gpg
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"
+  - name: opera
+    package: opera-stable
+    gpg_url: https://deb.opera.com/archive.key
+    gpg_path: /etc/apt/keyrings/opera.asc
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/opera.asc] https://deb.opera.com/opera-stable/ stable non-free"
+  - name: microsoft-edge
+    package: microsoft-edge-stable
+    gpg_url: https://packages.microsoft.com/keys/microsoft.asc
+    gpg_path: /etc/apt/keyrings/microsoft-edge.asc
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft-edge.asc] https://packages.microsoft.com/repos/edge stable main"
+  - name: mozilla-firefox
+    package: firefox
+    gpg_url: https://packages.mozilla.org/apt/repo-signing-key.gpg
+    gpg_path: /etc/apt/keyrings/packages.mozilla.org.asc
+    repo: "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main"
+    # Ubuntu's default "firefox" package is a transitional stub that installs
+    # the Snap. Pin Mozilla's repository above it so APT wins.
+    pin: |
+      Package: firefox*
+      Pin: origin packages.mozilla.org
+      Pin-Priority: 1000
+  - name: vivaldi
+    package: vivaldi-stable
+    gpg_url: https://repo.vivaldi.com/archive/linux_signing_key.pub
+    gpg_path: /etc/apt/keyrings/vivaldi.asc
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/vivaldi.asc] https://repo.vivaldi.com/archive/deb stable main"

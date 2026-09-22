@@ -5,25 +5,40 @@
 
 - name: Create the APT keyrings directory
   file:
-    path: "{{ desktop_chrome_keyring_dir }}"
+    path: "{{ desktop_keyring_dir }}"
     state: directory
     mode: "0755"
 
-- name: Add Google's official GPG key
+- name: Add the browsers' official GPG keys
   get_url:
-    url: "{{ desktop_chrome_gpg_url }}"
-    dest: "{{ desktop_chrome_gpg_path }}"
+    url: "{{ item.gpg_url }}"
+    dest: "{{ item.gpg_path }}"
     mode: "0644"
+  loop: "{{ desktop_apt_browsers }}"
+  loop_control:
+    label: "{{ item.name }}"
 
-- name: Add the Google Chrome APT repository
+- name: Add the browsers' APT repositories
   apt_repository:
-    repo: "deb [arch=amd64 signed-by={{ desktop_chrome_gpg_path }}] {{ desktop_chrome_apt_url }} stable main"
-    filename: google-chrome
+    repo: "{{ item.repo }}"
+    filename: "{{ item.name }}"
     state: present
+  loop: "{{ desktop_apt_browsers }}"
+  loop_control:
+    label: "{{ item.name }}"
 
-- name: Install Google Chrome
+- name: Pin browsers that need repository priority over Ubuntu defaults
+  copy:
+    dest: "/etc/apt/preferences.d/{{ item.name }}"
+    content: "{{ item.pin }}\n"
+    mode: "0644"
+  loop: "{{ desktop_apt_browsers | selectattr('pin', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install browsers from APT repositories
   apt:
-    name: "{{ desktop_chrome_package }}"
+    name: "{{ desktop_apt_browsers | map(attribute='package') | list }}"
     state: present
     update_cache: yes
 
@@ -32,3 +47,21 @@
     name: "{{ item }}"
     state: present
   loop: "{{ desktop_snap_packages }}"
+
+- name: Install Flatpak
+  apt:
+    name: flatpak
+    state: present
+
+- name: Add the Flathub remote
+  community.general.flatpak_remote:
+    name: "{{ desktop_flatpak_remote_name }}"
+    flatpakrepo_url: "{{ desktop_flatpak_remote_url }}"
+    state: present
+
+- name: Install desktop applications via Flatpak
+  community.general.flatpak:
+    name: "{{ item }}"
+    remote: "{{ desktop_flatpak_remote_name }}"
+    state: present
+  loop: "{{ desktop_flatpak_packages }}"
