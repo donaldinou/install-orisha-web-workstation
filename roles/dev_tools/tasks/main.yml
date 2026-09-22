@@ -15,6 +15,11 @@
     name: "{{ dev_tools_devops_packages }}"
     state: present
 
+- name: Install the Python development stack
+  apt:
+    name: "{{ dev_tools_python_packages }}"
+    state: present
+
 - name: Install development and build tools
   apt:
     name: "{{ dev_tools_dev_packages }}"

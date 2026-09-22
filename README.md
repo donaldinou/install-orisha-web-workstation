@@ -182,7 +182,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 |----------------|----------------|----------------------------------------------------------------------|
 | `user_account` | `user_account` | Derives the identity, creates/updates the target admin account, sets its global Git identity, and generates an ed25519 SSH key. |
 | `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), gnupg, openssh, etc. |
-| `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
+| `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi (APT repos); Slack, Discord, Chromium (Snap); Tor Browser (Flatpak). |
 
 Each role is configurable through its `roles/<role>/defaults/main.yml` file
