@@ -181,7 +181,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 | Role           | Tag            | Contents                                                             |
 |----------------|----------------|----------------------------------------------------------------------|
 | `user_account` | `user_account` | Derives the identity, creates/updates the target admin account, sets its global Git identity, and generates an ed25519 SSH key. |
-| `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), gnupg, openssh, etc. |
+| `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), gnupg, openssh, etc. |
 | `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi (APT repos); Slack, Discord, Chromium (Snap); Tor Browser (Flatpak). |
 
@@ -194,6 +194,23 @@ Docker is installed from the **official Docker repository**, not from the Ubuntu
 packages. Compose v2 is provided via `docker-compose-plugin`, so the command is
 `docker compose` (not `docker-compose`). The current user is added to the
 `docker` group.
+
+## VPN (OpenVPN classic + OpenVPN 3)
+
+Two VPN clients are installed by the `system` role:
+
+- **Classic OpenVPN** (`openvpn`) with NetworkManager integration
+  (`network-manager-openvpn`, `network-manager-openvpn-gnome`) for importing and
+  managing `.ovpn` profiles from the GNOME UI.
+- **OpenVPN 3** (`openvpn3`), the vendor's next-gen CLI client, installed from
+  **OpenVPN's official APT repository** (key + repo, per the
+  [official tutorial](https://openvpn.net/cloud-docs/tutorials/configuration-tutorials/connectors/operating-systems/linux/tutorial--learn-to-install-and-control-the-openvpn-3-client.html)).
+  Toggle with `system_install_openvpn3`.
+
+Note on the repository suite: OpenVPN publishes per-LTS suites and may lag just
+after a brand-new Ubuntu release. The repo suite defaults to the machine's own
+codename (`system_openvpn3_distro`); override it to the latest supported LTS if
+the repository has no suite for the running release yet.
 
 ## Git (git-core PPA)
 

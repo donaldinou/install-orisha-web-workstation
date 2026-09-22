@@ -40,6 +40,26 @@ system_base_packages:
 system_apt_components:
   - multiverse
 
+# VPN client. openvpn is the classic CLI; the network-manager-openvpn* packages
+# add desktop integration (import/manage .ovpn from the GNOME UI).
+system_vpn_packages:
+  - openvpn
+  - network-manager-openvpn
+  - network-manager-openvpn-gnome
+
+# OpenVPN 3 client, installed from OpenVPN's official APT repository (the
+# vendor-recommended next-gen client, CLI: "openvpn3 session-start ...").
+# https://openvpn.net/cloud-docs/ (OpenVPN 3 Linux client tutorial)
+system_install_openvpn3: true
+system_openvpn3_package: openvpn3
+system_openvpn3_gpg_url: https://packages.openvpn.net/packages-repo.gpg
+system_openvpn3_gpg_path: /etc/apt/keyrings/openvpn.asc
+# Repository suite (Ubuntu codename). OpenVPN publishes per-LTS suites and may
+# lag right after a new release ships. Defaults to the machine's own codename;
+# override this (e.g. to the latest supported LTS) if the repo has no suite yet.
+system_openvpn3_distro: "{{ ansible_distribution_release }}"
+system_openvpn3_repo: "deb [signed-by=/etc/apt/keyrings/openvpn.asc] https://packages.openvpn.net/openvpn3/debian {{ system_openvpn3_distro }} main"
+
 # Equivalent of the Ubuntu installer's "Install third-party software for
 # graphics and Wi-Fi hardware" checkbox: proprietary drivers + firmware.
 # ubuntu-drivers autoinstall detects and installs the right driver for the
