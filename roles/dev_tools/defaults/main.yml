@@ -1,9 +1,71 @@
 ---
-# Command-line development tools.
-dev_tools_cli_packages:
+# Git is installed from the official git-core PPA, which ships a newer Git than
+# the Ubuntu repositories. See tasks: the PPA is added before Git is installed.
+dev_tools_git_ppa: "ppa:git-core/ppa"
+dev_tools_git_packages:
   - git
+  - git-extras
+  - git-flow
+  - git-lfs
+
+# DevOps / networking CLI tools.
+# Package names valid on Ubuntu 24.04 (noble) and 26.04.
+dev_tools_devops_packages:
+  - htop
   - jq
   - tree
+  - nmap
+  - net-tools
+  - findutils
+  - traceroute
+  - xclip
+  - gdebi
+  - hardinfo
+  - checkinstall
+  - sshfs
+  - mussh
+
+# Development / build tools.
+# Notes: "android-tools-adb" is now provided by "adb" on recent Ubuntu.
+dev_tools_dev_packages:
+  - kcachegrind
+  - gcc
+  - make
+  - automake
+  - autoconf
+  - udev
+  - meld
+  - imagemagick
+  - ghostscript
+  - adb
+
+# Development libraries (-dev headers) commonly needed to build native
+# extensions (PHP/Python/Ruby/Node) and C projects.
+# Notes on the original 20.04 list:
+#   - "libc-dev" dropped: virtual package already provided by build-essential.
+#   - "libusb-dev" dropped: legacy libusb 0.1, superseded by libusb-1.0-0-dev.
+#   - "libmcrypt-dev" kept: still required by some legacy PHP (< 7.2) code.
+dev_tools_build_libs:
+  - libssl-dev
+  - libcurl4-openssl-dev
+  - libzip-dev
+  - libbz2-dev
+  - liblzma-dev
+  - libicu-dev
+  - libxslt1-dev
+  - libmcrypt-dev
+
+# iOS device support (debugging / manipulating Apple devices from the desktop).
+# usbmuxd is the runtime daemon; the rest are tools and -dev headers.
+# Toggle off with dev_tools_install_ios_support if a machine never touches iOS.
+dev_tools_install_ios_support: true
+dev_tools_ios_packages:
+  - usbmuxd
+  - libimobiledevice-utils
+  - libimobiledevice-dev
+  - libplist-dev
+  - libplist++-dev
+  - libusb-1.0-0-dev
 
 # Official Docker repository configuration.
 dev_tools_docker_keyring_dir: /etc/apt/keyrings

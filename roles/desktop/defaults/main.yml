@@ -2,7 +2,9 @@
 # Desktop applications installed via APT.
 desktop_apt_packages:
   - vlc
+  - inkscape
   - gimp
+  - filezilla
 
 # Desktop applications installed via Snap (strict mode, non classic).
 # Chromium ships no official vendor APT repository (the Ubuntu APT package is a

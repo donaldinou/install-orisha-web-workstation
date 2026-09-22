@@ -1,14 +1,60 @@
 ---
 # Basic system tools installed on the workstation.
+# Package names are chosen to be valid on Ubuntu 24.04 (noble) and 26.04.
+# Notes on renamed/removed packages:
+#   - "build-dep" is an apt subcommand, not a package -> dropped.
+#   - "exfat-utils" was removed in 20.04+ -> replaced by "exfatprogs".
+#   - "gnupg2" is a transitional package pointing to "gnupg" -> kept "gnupg" only.
 system_base_packages:
+  - systemd
+  - build-essential
+  - software-properties-common
+  - apt-transport-https
+  - ca-certificates
+  - os-prober
   - curl
   - wget
-  - htop
-  - build-essential
-  - unzip
-  - software-properties-common
-  - ca-certificates
+  - gpg
   - gnupg
+  - openssh-server
+  - openssh-client
+  - snapd
+  - exfatprogs
+  - exfat-fuse
+  - gzip
+  - zip
+  - unzip
+  - unrar
+  - smbclient
+  - cifs-utils
+  - rename
+  - libsecret-tools
+  - mbr
+  - pkg-config
+  - libtool
+  - packagekit-command-not-found
+  - htop
+
+# APT components enabled before installing packages.
+# "multiverse" is required for unrar; universe is enabled by default on Ubuntu.
+system_apt_components:
+  - multiverse
+
+# Equivalent of the Ubuntu installer's "Install third-party software for
+# graphics and Wi-Fi hardware" checkbox: proprietary drivers + firmware.
+# ubuntu-drivers autoinstall detects and installs the right driver for the
+# actual hardware.
+system_install_third_party_drivers: true
+system_driver_support_packages:
+  - ubuntu-drivers-common
+  - linux-firmware
+
+# Equivalent of the installer's "Download and install support for additional
+# media formats" checkbox: codecs, Microsoft fonts, etc.
+# NOTE: this installs proprietary codecs and the Microsoft core fonts, whose
+# EULA is pre-accepted non-interactively (see tasks). It requires multiverse.
+system_install_restricted_extras: true
+system_restricted_extras_package: ubuntu-restricted-extras
 
 # Duration (in seconds) during which the APT cache is considered up to date.
 system_apt_cache_valid_time: 3600

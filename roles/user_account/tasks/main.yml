@@ -50,9 +50,71 @@
     - not user_account_exists
   changed_when: true
 
+- name: Ensure Git is available for the account's global configuration
+  apt:
+    name: git
+    state: present
+
+- name: Configure the account's global Git identity (user.name)
+  community.general.git_config:
+    name: user.name
+    value: "{{ user_firstname }} {{ user_lastname }}"
+    scope: global
+  become: true
+  become_user: "{{ user_account_name }}"
+
+- name: Configure the account's global Git identity (user.email)
+  community.general.git_config:
+    name: user.email
+    value: "{{ user_email }}"
+    scope: global
+  become: true
+  become_user: "{{ user_account_name }}"
+
+- name: Resolve the account's home directory
+  getent:
+    database: passwd
+    key: "{{ user_account_name }}"
+
+- name: Set a fact for the account's home directory
+  set_fact:
+    user_home: "{{ getent_passwd[user_account_name][4] }}"
+
+- name: Ensure the account's .ssh directory exists
+  file:
+    path: "{{ user_home }}/.ssh"
+    state: directory
+    owner: "{{ user_account_name }}"
+    group: "{{ user_account_name }}"
+    mode: "0700"
+
+- name: Generate an ed25519 SSH key for the account (no passphrase)
+  # Idempotent via "creates": never regenerates an existing key, which may
+  # already be registered on the forges. Uses ssh-keygen for portability across
+  # community.general versions.
+  command: >-
+    ssh-keygen -t {{ user_ssh_key_type }} -N ''
+    -C "{{ user_email }}"
+    -f "{{ user_home }}/{{ user_ssh_key_path }}"
+  args:
+    creates: "{{ user_home }}/{{ user_ssh_key_path }}"
+  become: true
+  become_user: "{{ user_account_name }}"
+
+- name: Read the generated public SSH key
+  slurp:
+    src: "{{ user_home }}/{{ user_ssh_key_path }}.pub"
+  register: user_ssh_pubkey
+
 - name: Show the derived identity summary
   debug:
     msg:
       - "Account : {{ user_account_name }} ({{ 'existing, admin rights granted' if user_account_exists else 'created' }})"
       - "Email   : {{ user_email }}"
       - "LDAP    : {{ user_ldap }}"
+      - "Git     : {{ user_firstname }} {{ user_lastname }} <{{ user_email }}>"
+      - "SSH key : {{ user_home }}/{{ user_ssh_key_path }} (ed25519)"
+
+- name: Show the public SSH key to register on GitHub / GitLab
+  debug:
+    msg: "{{ user_ssh_pubkey.content | b64decode | trim }}"

@@ -46,3 +46,8 @@ user_shell: /bin/bash
 
 # Whether the password must be changed at first login.
 user_force_password_change: true
+
+# SSH key generated for the account (used with GitHub, GitLab, etc.).
+# ed25519, no passphrase. Never overwritten if it already exists.
+user_ssh_key_type: ed25519
+user_ssh_key_path: ".ssh/id_ed25519"

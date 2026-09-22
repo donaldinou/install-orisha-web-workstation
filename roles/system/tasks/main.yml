@@ -1,4 +1,24 @@
 ---
+- name: Check which APT components are already enabled
+  # apt-cache policy lists every enabled component; grep tells us if one is
+  # missing without relying on localized command output.
+  shell: "apt-cache policy | grep -qw {{ item }}"
+  register: component_check
+  changed_when: false
+  failed_when: false
+  loop: "{{ system_apt_components }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Enable the missing APT components (multiverse for unrar, ...)
+  # add-apt-repository edits existing sources without duplicating lines and
+  # picks the right mirror/URL per architecture.
+  command: "add-apt-repository -y -c {{ item.item }}"
+  when: item.rc != 0
+  loop: "{{ component_check.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
 - name: Update APT repositories and upgrade the system
   apt:
     update_cache: yes
@@ -9,3 +29,35 @@
   apt:
     name: "{{ system_base_packages }}"
     state: present
+
+# --- "Additional media formats" installer option -----------------------------
+
+- name: Pre-accept the Microsoft core fonts EULA (non-interactive)
+  debconf:
+    name: ttf-mscorefonts-installer
+    question: msttcorefonts/accepted-mscorefonts-eula
+    vtype: boolean
+    value: "true"
+  when: system_install_restricted_extras | bool
+
+- name: Install support for additional media formats (codecs, fonts)
+  apt:
+    name: "{{ system_restricted_extras_package }}"
+    state: present
+  when: system_install_restricted_extras | bool
+
+# --- "Third-party graphics & Wi-Fi drivers" installer option -----------------
+
+- name: Install driver support packages (firmware, ubuntu-drivers)
+  apt:
+    name: "{{ system_driver_support_packages }}"
+    state: present
+  when: system_install_third_party_drivers | bool
+
+- name: Auto-install the proprietary drivers matching the hardware
+  # Mirrors the installer's "third-party drivers" checkbox: detects and installs
+  # the right proprietary driver (GPU, Wi-Fi) for this machine. Idempotent.
+  command: ubuntu-drivers autoinstall
+  register: ubuntu_drivers_result
+  changed_when: "'No drivers found' not in ubuntu_drivers_result.stdout and 'already installed' not in ubuntu_drivers_result.stdout"
+  when: system_install_third_party_drivers | bool

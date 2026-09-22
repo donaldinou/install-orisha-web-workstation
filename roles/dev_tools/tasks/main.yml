@@ -1,8 +1,35 @@
 ---
-- name: Install Git and CLI tools
-  apt:
-    name: "{{ dev_tools_cli_packages }}"
+- name: Add the git-core PPA (newer Git than the Ubuntu repositories)
+  apt_repository:
+    repo: "{{ dev_tools_git_ppa }}"
     state: present
+
+- name: Install Git and Git-related tools from the git-core PPA
+  apt:
+    name: "{{ dev_tools_git_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Install DevOps and networking CLI tools
+  apt:
+    name: "{{ dev_tools_devops_packages }}"
+    state: present
+
+- name: Install development and build tools
+  apt:
+    name: "{{ dev_tools_dev_packages }}"
+    state: present
+
+- name: Install development libraries (-dev headers)
+  apt:
+    name: "{{ dev_tools_build_libs }}"
+    state: present
+
+- name: Install iOS device support (usbmuxd, libimobiledevice, ...)
+  apt:
+    name: "{{ dev_tools_ios_packages }}"
+    state: present
+  when: dev_tools_install_ios_support | bool
 
 - name: Create the APT keyrings directory
   file:
