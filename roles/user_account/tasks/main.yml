@@ -1,0 +1,58 @@
+---
+- name: Validate that firstname and lastname are provided
+  assert:
+    that:
+      - user_firstname | length > 0
+      - user_lastname | length > 0
+    fail_msg: "user_firstname and user_lastname are required (pass --firstname / --lastname)."
+
+- name: Validate that the derived account name is usable
+  assert:
+    that:
+      - user_account_name | length > 0
+      - user_account_name is match('^[a-z][a-z0-9-]*$')
+    fail_msg: "Derived account name '{{ user_account_name }}' is not a valid Linux username."
+
+- name: Check whether the target account already exists
+  getent:
+    database: passwd
+    key: "{{ user_account_name }}"
+  register: user_account_lookup
+  failed_when: false
+
+- name: Set a fact for account existence
+  set_fact:
+    user_account_exists: "{{ user_account_name in (user_account_lookup.ansible_facts.getent_passwd | default({}, true)) }}"
+
+- name: Create the admin account (only if it does not exist)
+  user:
+    name: "{{ user_account_name }}"
+    comment: "{{ user_firstname }} {{ user_lastname }}"
+    password: "{{ user_password_hash }}"
+    shell: "{{ user_shell }}"
+    groups: "{{ user_admin_group }}"
+    append: yes
+    create_home: yes
+    state: present
+  when: not user_account_exists
+
+- name: Grant admin rights to the existing account
+  user:
+    name: "{{ user_account_name }}"
+    groups: "{{ user_admin_group }}"
+    append: yes
+  when: user_account_exists
+
+- name: Force password change at first login
+  command: "chage -d 0 {{ user_account_name }}"
+  when:
+    - user_force_password_change | bool
+    - not user_account_exists
+  changed_when: true
+
+- name: Show the derived identity summary
+  debug:
+    msg:
+      - "Account : {{ user_account_name }} ({{ 'existing, admin rights granted' if user_account_exists else 'created' }})"
+      - "Email   : {{ user_email }}"
+      - "LDAP    : {{ user_ldap }}"

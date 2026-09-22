@@ -1,3 +1,4 @@
+---
 - name: Install Git and CLI tools
   apt:
     name: "{{ dev_tools_cli_packages }}"

@@ -4,6 +4,8 @@
   become: true
 
   roles:
+    - role: user_account
+      tags: [user_account]
     - role: system
       tags: [system]
     - role: dev_tools

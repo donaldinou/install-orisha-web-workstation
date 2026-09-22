@@ -1,3 +1,4 @@
+---
 - name: Install standard desktop applications
   apt:
     name: "{{ desktop_apt_packages }}"

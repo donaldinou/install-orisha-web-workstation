@@ -1,2 +1,10 @@
-.kiro
+# Ansible Vault password file - never commit this.
+.vault_pass
+.vault_pass.txt
+
+# Ansible retry files.
+*.retry
+
+# local
+.kiro/
 *.code-workspace

@@ -1,3 +1,4 @@
+---
 - name: Update APT repositories and upgrade the system
   apt:
     update_cache: yes

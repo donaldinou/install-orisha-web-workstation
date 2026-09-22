@@ -1,0 +1,48 @@
+---
+# Identity of the workstation's target user.
+# firstname / lastname are the only mandatory inputs; everything else is derived
+# from them but can be overridden (by bootstrap.sh or via --extra-vars).
+user_firstname: ""
+user_lastname: ""
+
+# Email domain and derivation helpers.
+user_email_domain: orisha.com
+
+# Normalization: lowercase, strip accents, drop spaces/apostrophes, keep hyphens.
+# Applied to firstname and lastname before building identifiers.
+user_firstname_norm: >-
+  {{ user_firstname | lower
+     | replace(' ', '-') | replace("'", '')
+     | regex_replace('[àáâãäå]', 'a') | regex_replace('[èéêë]', 'e')
+     | regex_replace('[ìíîï]', 'i')  | regex_replace('[òóôõö]', 'o')
+     | regex_replace('[ùúûü]', 'u')  | regex_replace('[ç]', 'c')
+     | regex_replace('[ñ]', 'n')     | regex_replace('[^a-z0-9-]', '') }}
+user_lastname_norm: >-
+  {{ user_lastname | lower
+     | replace(' ', '') | replace('-', '') | replace("'", '')
+     | regex_replace('[àáâãäå]', 'a') | regex_replace('[èéêë]', 'e')
+     | regex_replace('[ìíîï]', 'i')  | regex_replace('[òóôõö]', 'o')
+     | regex_replace('[ùúûü]', 'u')  | regex_replace('[ç]', 'c')
+     | regex_replace('[ñ]', 'n')     | regex_replace('[^a-z0-9]', '') }}
+
+# Initials of each first-name component (split on hyphen).
+# "Jacques-Yves" -> "jy"
+user_firstname_initials: >-
+  {{ user_firstname_norm.split('-') | map('first') | join('') }}
+
+# Derived defaults (overridable via extra-vars).
+# Email:    {initials}.{lastname}@domain        -> jy.haury@orisha.com
+# LDAP:     {firstname}.{lastname}              -> jacques-yves.haury
+# Username: {initials}{lastname}                -> jyhaury
+user_email: "{{ user_firstname_initials }}.{{ user_lastname_norm }}@{{ user_email_domain }}"
+user_ldap: "{{ user_firstname_norm }}.{{ user_lastname_norm }}"
+user_account_name: "{{ user_firstname_initials }}{{ user_lastname_norm }}"
+
+# Admin group granting sudo rights on Debian/Ubuntu.
+user_admin_group: sudo
+
+# Login shell for the created account.
+user_shell: /bin/bash
+
+# Whether the password must be changed at first login.
+user_force_password_change: true
