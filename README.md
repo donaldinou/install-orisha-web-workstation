@@ -200,7 +200,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 |----------------|----------------|----------------------------------------------------------------------|
 | `user_account` | `user_account` | Derives the identity, creates/updates the target admin account, sets its global Git identity, generates an ed25519 SSH key, and installs the Node toolchain (fnm + Node + Yarn via Corepack). |
 | `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), fastfetch, gnupg, openssh, etc. |
-| `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
+| `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; AWS CLI v2 (official installer); Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina (Snap); Tor Browser (Flatpak). |
 | `kiro`         | `kiro`         | Installs the Kiro IDE from the official `.deb` (built-in auto-updater keeps it current). |
 
@@ -214,6 +214,13 @@ Ubuntu packages: `docker-ce`, `docker-ce-cli`, `containerd.io`,
 `docker-buildx-plugin`, `docker-compose-plugin`. Compose v2 is provided via
 `docker-compose-plugin`, so the command is `docker compose` (not
 `docker-compose`). The current user is added to the `docker` group.
+
+**AWS CLI v2** is installed system-wide with the **official zip installer**
+(`awscli.amazonaws.com/awscli-exe-linux-*.zip`), the method recommended by AWS —
+the apt `awscli` package is v1 and pip is discouraged for v2. It installs to
+`/usr/local/aws-cli` with the binary at `/usr/local/bin/aws`, so it's available
+to all users. Re-runs pass `--update` to upgrade in place. Toggle with
+`dev_tools_install_awscli`.
 
 **Docker Desktop** support is implemented but **disabled by default**
 (`dev_tools_install_docker_desktop: false`), because commercial use in larger

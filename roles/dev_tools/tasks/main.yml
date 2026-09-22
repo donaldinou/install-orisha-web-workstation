@@ -109,6 +109,36 @@
     state: absent
   when: dev_tools_install_docker_desktop | bool
 
+# --- AWS CLI v2 (official zip installer, system-wide) -------------------------
+
+- name: Check whether the AWS CLI is already installed
+  stat:
+    path: "{{ dev_tools_awscli_bin }}"
+  register: awscli_bin
+  when: dev_tools_install_awscli | bool
+
+- name: Download and unpack the official AWS CLI v2 installer
+  unarchive:
+    src: "{{ dev_tools_awscli_url }}"
+    dest: /tmp
+    remote_src: yes
+    creates: /tmp/aws/install
+  when: dev_tools_install_awscli | bool
+
+- name: Run the AWS CLI installer (install or update) system-wide
+  command: >-
+    /tmp/aws/install
+    {{ '--update' if (awscli_bin.stat.exists | default(false)) else '' }}
+  register: awscli_install
+  changed_when: awscli_install.rc == 0
+  when: dev_tools_install_awscli | bool
+
+- name: Clean up the AWS CLI installer files
+  file:
+    path: /tmp/aws
+    state: absent
+  when: dev_tools_install_awscli | bool
+
 - name: Install VS Code and other classic snaps
   community.general.snap:
     name: "{{ item }}"
