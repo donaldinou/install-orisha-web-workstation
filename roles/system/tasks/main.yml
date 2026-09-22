@@ -35,6 +35,18 @@
     name: "{{ system_vpn_packages }}"
     state: present
 
+- name: Add the fastfetch PPA on releases that lack it natively (< 25.04)
+  apt_repository:
+    repo: "{{ system_fastfetch_ppa }}"
+    state: present
+  when: ansible_distribution_version is version('25.04', '<')
+
+- name: Install fastfetch
+  apt:
+    name: fastfetch
+    state: present
+    update_cache: yes
+
 - name: Create the APT keyrings directory (for OpenVPN 3 repo)
   file:
     path: /etc/apt/keyrings

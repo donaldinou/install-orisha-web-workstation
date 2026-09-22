@@ -5,6 +5,8 @@ desktop_apt_packages:
   - inkscape
   - gimp
   - filezilla
+  - lynx
+  - epiphany-browser
 
 # Desktop applications installed via Snap (strict mode, non classic).
 # Chromium ships no official vendor APT repository (the Ubuntu APT package is a
@@ -80,3 +82,16 @@ desktop_apt_browsers:
     gpg_url: https://repo.vivaldi.com/archive/linux_signing_key.pub
     gpg_path: /etc/apt/keyrings/vivaldi.asc
     repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/vivaldi.asc] https://repo.vivaldi.com/archive/deb stable main"
+
+# Other desktop apps installed from their official APT repository (same schema
+# as browsers above). AnyDesk = proprietary remote desktop tool.
+desktop_apt_repo_apps:
+  - name: anydesk
+    package: anydesk
+    gpg_url: https://keys.anydesk.com/repos/DEB-GPG-KEY
+    gpg_path: /etc/apt/keyrings/anydesk.asc
+    repo: "deb [signed-by=/etc/apt/keyrings/anydesk.asc] https://deb.anydesk.com all main"
+
+# Combined list of all APT-repo-based apps (browsers + others), used by the
+# tasks so a single loop handles keys, repos, pins and installation.
+desktop_apt_repo_all: "{{ desktop_apt_browsers + desktop_apt_repo_apps }}"

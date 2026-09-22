@@ -181,9 +181,9 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 | Role           | Tag            | Contents                                                             |
 |----------------|----------------|----------------------------------------------------------------------|
 | `user_account` | `user_account` | Derives the identity, creates/updates the target admin account, sets its global Git identity, and generates an ed25519 SSH key. |
-| `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), gnupg, openssh, etc. |
+| `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), fastfetch, gnupg, openssh, etc. |
 | `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
-| `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi (APT repos); Slack, Discord, Chromium, Remmina (Snap); Tor Browser (Flatpak). |
+| `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina (Snap); Tor Browser (Flatpak). |
 
 Each role is configurable through its `roles/<role>/defaults/main.yml` file
 (package lists, URLs, etc.).
@@ -196,16 +196,15 @@ Ubuntu packages: `docker-ce`, `docker-ce-cli`, `containerd.io`,
 `docker-compose-plugin`, so the command is `docker compose` (not
 `docker-compose`). The current user is added to the `docker` group.
 
-**Docker Desktop** is also installed (`dev_tools_install_docker_desktop`,
-default `true`). It is **not** available from the APT repository, so the role
-downloads the official standalone `.deb`
-(`desktop.docker.com/.../docker-desktop-amd64.deb`) and installs it with `apt`
-(dependencies resolved). The download step is skipped if Docker Desktop is
-already installed. Docker Desktop and the `docker-ce` engine coexist (Desktop
-runs its own engine in an isolated VM).
-
-> Docker Desktop requires Ubuntu 24.04/26.04 and, for commercial use in larger
-> enterprises (>250 employees or >$10M revenue), a paid Docker subscription.
+**Docker Desktop** support is implemented but **disabled by default**
+(`dev_tools_install_docker_desktop: false`), because commercial use in larger
+enterprises (>250 employees or >$10M revenue) requires a paid Docker
+subscription we don't have yet. When enabled, the role downloads the official
+standalone `.deb` (`desktop.docker.com/.../docker-desktop-amd64.deb`, it is
+**not** in the APT repository) and installs it with `apt`, skipping the download
+if it's already installed. Docker Desktop and the `docker-ce` engine coexist
+(Desktop runs its own engine in an isolated VM). To enable it later, set the
+toggle to `true` — no other change needed.
 
 ## VPN (OpenVPN classic + OpenVPN 3)
 
@@ -258,6 +257,9 @@ names from older setups were adjusted:
 - `android-tools-adb` → `adb` on recent Ubuntu.
 - `git-extras` (with an `s`), `mussh`, `findutils` are the correct package names.
 - `build-dep` was removed from the list: it is an `apt` subcommand, not a package.
+- `fastfetch` is only in the Ubuntu archive from 25.04+/26.04. On 24.04 (noble)
+  it is not packaged, so the `system` role adds the fastfetch PPA when the
+  release is `< 25.04` and installs from the native repository otherwise.
 
 Note: `unrar` lives in the **multiverse** component. The `system` role enables
 the components listed in `system_apt_components` (multiverse by default) before

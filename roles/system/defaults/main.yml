@@ -76,5 +76,9 @@ system_driver_support_packages:
 system_install_restricted_extras: true
 system_restricted_extras_package: ubuntu-restricted-extras
 
+# fastfetch (system info tool). Available natively in Ubuntu universe from
+# 25.04+/26.04, but NOT in 24.04 (noble) -> a PPA is used on older releases.
+system_fastfetch_ppa: "ppa:zhangsongcui3371/fastfetch"
+
 # Duration (in seconds) during which the APT cache is considered up to date.
 system_apt_cache_valid_time: 3600
