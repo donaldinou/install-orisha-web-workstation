@@ -1,0 +1,14 @@
+---
+# Outils système de base installés sur le poste.
+system_base_packages:
+  - curl
+  - wget
+  - htop
+  - build-essential
+  - unzip
+  - software-properties-common
+  - ca-certificates
+  - gnupg
+
+# Durée (en secondes) pendant laquelle le cache APT est considéré à jour.
+system_apt_cache_valid_time: 3600

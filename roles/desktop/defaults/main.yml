@@ -1,0 +1,10 @@
+---
+# Applications desktop installées via APT.
+desktop_apt_packages:
+  - vlc
+  - gimp
+
+# Applications desktop installées via Snap (mode strict, non classic).
+desktop_snap_packages:
+  - slack
+  - discord

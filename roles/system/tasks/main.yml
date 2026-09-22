@@ -1,0 +1,10 @@
+- name: Update APT repositories and the system
+  apt:
+    update_cache: yes
+    upgrade: dist
+    cache_valid_time: "{{ system_apt_cache_valid_time }}"
+
+- name: Install basic system tools
+  apt:
+    name: "{{ system_base_packages }}"
+    state: present

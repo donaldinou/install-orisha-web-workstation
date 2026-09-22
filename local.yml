@@ -1,0 +1,9 @@
+- name: Post-installation automatique Ubuntu
+  hosts: localhost
+  connection: local
+  become: true
+
+  roles:
+    - system
+    - dev_tools
+    - desktop

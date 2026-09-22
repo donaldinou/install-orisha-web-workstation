@@ -1,0 +1,10 @@
+- name: Install standard desktop applications
+  apt:
+    name: "{{ desktop_apt_packages }}"
+    state: present
+
+- name: Installer les applications desktop via Snap
+  community.general.snap:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ desktop_snap_packages }}"
