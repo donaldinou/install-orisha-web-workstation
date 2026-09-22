@@ -12,3 +12,5 @@
       tags: [dev_tools]
     - role: desktop
       tags: [desktop]
+    - role: kiro
+      tags: [kiro]

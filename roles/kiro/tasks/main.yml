@@ -1,0 +1,43 @@
+---
+- name: Ensure the tools required by the Kiro installer are installed
+  apt:
+    name: "{{ kiro_required_packages }}"
+    state: present
+
+- name: Install the Kiro install/update script (for manual use)
+  copy:
+    src: kiro-update.sh
+    dest: "{{ kiro_update_script_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+# The Kiro IDE has had a working built-in auto-updater since 2026-08-18, so we
+# do NOT install an APT hook to force updates: the app updates itself. The
+# script above remains available for manual (re)installation.
+#
+# If the built-in updater is ever disabled and you want APT-driven updates,
+# set kiro_enable_apt_update_hook to true.
+- name: Install the APT hook to auto-update Kiro after system updates (optional)
+  copy:
+    dest: "{{ kiro_apt_hook_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      // Managed by Ansible (kiro role). Runs the Kiro updater after a
+      // successful "apt update". Disabled by default because the Kiro IDE has
+      // its own built-in auto-updater.
+      APT::Update::Post-Invoke-Success { "{{ kiro_update_script_path }} >/dev/null 2>&1 || true"; };
+  when: kiro_enable_apt_update_hook | bool
+
+- name: Remove the Kiro APT hook when disabled
+  file:
+    path: "{{ kiro_apt_hook_path }}"
+    state: absent
+  when: not (kiro_enable_apt_update_hook | bool)
+
+- name: Run the Kiro installer once to perform the initial installation
+  command: "{{ kiro_update_script_path }}"
+  register: kiro_install
+  changed_when: "'installed.' in kiro_install.stdout"

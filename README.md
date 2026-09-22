@@ -170,7 +170,8 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
     ├── user_account/     # Creates/updates the target admin account, derives identity
     ├── system/           # System update + base system tools
     ├── dev_tools/        # Git, CLI tools, Docker, VS Code
-    └── desktop/          # Browsers, media and chat applications
+    ├── desktop/          # Browsers, media and chat applications
+    └── kiro/             # Kiro IDE install from official .deb (optional APT-hook updater)
 ```
 
 > `.vault_pass` (the Vault password file) is git-ignored and must never be
@@ -184,6 +185,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 | `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), fastfetch, gnupg, openssh, etc. |
 | `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina (Snap); Tor Browser (Flatpak). |
+| `kiro`         | `kiro`         | Installs the Kiro IDE from the official `.deb` (built-in auto-updater keeps it current). |
 
 Each role is configurable through its `roles/<role>/defaults/main.yml` file
 (package lists, URLs, etc.).
@@ -323,6 +325,30 @@ already connected, so re-runs are idempotent.
 ansible-galaxy collection install -r requirements.yml
 ansible-playbook local.yml --ask-become-pass
 ```
+
+## Kiro IDE (no repo — official .deb)
+
+Kiro (kiro.dev) has no official APT repository. The `kiro` role installs it from
+the official download server using the official **`.deb`** package (clean APT
+install with dependency resolution), discovered via Kiro's official stable
+`.deb` metadata endpoint (no hardcoded version).
+
+- `/usr/local/bin/kiro-update` reads the metadata endpoint, compares the latest
+  published version with the installed one, and only downloads and installs the
+  `.deb` when they differ (idempotent). The role runs it once at provisioning
+  for the initial install.
+- **Updates**: the Kiro IDE has a working built-in auto-updater (re-enabled on
+  2026-08-18), so the app updates itself in the background. We therefore do
+  **not** force updates from the system. The `kiro-update` script stays
+  available for manual (re)installation: `sudo kiro-update`.
+- If the built-in updater is ever disabled and you want APT-driven updates
+  instead, set `kiro_enable_apt_update_hook: true`. The role then installs an
+  APT hook (`/etc/apt/apt.conf.d/99kiro-update`) that runs the updater after a
+  successful `apt update` — a native APT mechanism
+  (`APT::Update::Post-Invoke-Success`), not an alias.
+
+For centrally-managed fleets, Kiro also supports self-hosted "managed updates"
+(out of scope here).
 
 ## Development
 

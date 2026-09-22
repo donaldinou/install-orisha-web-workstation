@@ -1,0 +1,19 @@
+---
+# Kiro IDE (kiro.dev). There is no official APT repository, so it is installed
+# from the official download server using the official .deb package.
+#
+# The Kiro IDE has a working built-in auto-updater (since 2026-08-18), so we do
+# NOT force updates from the system by default. The install/update script is
+# still deployed for manual use, and an optional APT hook can be enabled if the
+# built-in updater is ever turned off.
+kiro_update_script_path: /usr/local/bin/kiro-update
+kiro_apt_hook_path: /etc/apt/apt.conf.d/99kiro-update
+
+# Set to true to re-enable APT-driven updates (adds the Post-Invoke-Success
+# hook). Left false because the IDE updates itself.
+kiro_enable_apt_update_hook: false
+
+# Tools required by the install/update script.
+kiro_required_packages:
+  - curl
+  - jq
