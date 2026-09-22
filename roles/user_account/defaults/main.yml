@@ -60,3 +60,12 @@ user_ssh_key_path: ".ssh/id_ed25519"
 user_install_fnm: true
 user_fnm_install_url: "https://fnm.vercel.app/install"
 user_fnm_install_dir: ".local/share/fnm"
+
+# Default Node.js version installed for the account via fnm. "lts-latest" tracks
+# the newest LTS. Required so that node/corepack/yarn are actually usable.
+user_node_version: "lts-latest"
+
+# Yarn is enabled via Corepack (shipped with Node, the method recommended by
+# Yarn). Requires fnm + a Node version above. The project then pins its own
+# Yarn version through the "packageManager" field in package.json.
+user_install_yarn: true

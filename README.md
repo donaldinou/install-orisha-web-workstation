@@ -88,16 +88,22 @@ other forges. Generation is idempotent: an existing key is **never** regenerated
 or overwritten, so a key already registered on a forge stays valid. The public
 key is printed at the end of the run so it can be added to the forges.
 
-### fnm (Fast Node Manager)
+### Node.js toolchain (fnm + Node + Yarn via Corepack)
 
-fnm is a **per-user** Node.js version manager, so it is installed into the
-target account's home (not system-wide, not the installer's account), using
-fnm's **official installation script** (`https://fnm.vercel.app/install`, the
-method recommended by the project). It runs as the target user with
-`--install-dir` set to `~/.local/share/fnm` and `--skip-shell`; the shell init
-(`eval "$(fnm env --use-on-cd)"`) is then managed idempotently in the account's
-`~/.bashrc` via an Ansible-managed block. Toggle with `user_install_fnm`. Node
-itself is then managed by the user with `fnm install <version>`.
+The account gets a full per-user Node.js toolchain (nothing system-wide, and not
+in the installer's account):
+
+- **fnm** (Fast Node Manager) is installed with fnm's **official installation
+  script** (`https://fnm.vercel.app/install`) as the target user, with
+  `--install-dir ~/.local/share/fnm` and `--skip-shell`. The shell init
+  (`eval "$(fnm env --use-on-cd)"`) is managed idempotently in the account's
+  `~/.bashrc`. Toggle with `user_install_fnm`.
+- **Node.js** — a default version (`user_node_version`, `lts-latest` by default)
+  is installed and set as the fnm default, so `node` is immediately usable.
+- **Yarn** — enabled via **Corepack** (shipped with Node, the method recommended
+  by Yarn): `corepack enable` + `corepack prepare yarn@stable --activate`.
+  Toggle with `user_install_yarn`. Projects then pin their own Yarn version via
+  the `packageManager` field in `package.json`.
 
 ### `bootstrap.sh` options
 
@@ -192,7 +198,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 
 | Role           | Tag            | Contents                                                             |
 |----------------|----------------|----------------------------------------------------------------------|
-| `user_account` | `user_account` | Derives the identity, creates/updates the target admin account, sets its global Git identity, generates an ed25519 SSH key, and installs fnm (per-user Node manager). |
+| `user_account` | `user_account` | Derives the identity, creates/updates the target admin account, sets its global Git identity, generates an ed25519 SSH key, and installs the Node toolchain (fnm + Node + Yarn via Corepack). |
 | `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), fastfetch, gnupg, openssh, etc. |
 | `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina (Snap); Tor Browser (Flatpak). |

@@ -145,6 +145,40 @@
   become_user: "{{ user_account_name }}"
   when: user_install_fnm | bool
 
+# --- Node.js (via fnm) + Yarn (via Corepack) ----------------------------------
+# All commands load fnm first, then run node tooling. Run as the target user.
+
+- name: Install the default Node.js version via fnm
+  shell: |
+    export PATH="$HOME/{{ user_fnm_install_dir }}:$PATH"
+    eval "$(fnm env)"
+    fnm install {{ user_node_version }}
+    fnm default {{ user_node_version }}
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ user_account_name }}"
+  register: fnm_node_install
+  changed_when: "'is already installed' not in fnm_node_install.stderr"
+  when: user_install_fnm | bool
+
+- name: Enable Corepack and activate Yarn for the account
+  shell: |
+    export PATH="$HOME/{{ user_fnm_install_dir }}:$PATH"
+    eval "$(fnm env)"
+    fnm use default
+    corepack enable
+    corepack prepare yarn@stable --activate
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ user_account_name }}"
+  register: yarn_enable
+  changed_when: true
+  when:
+    - user_install_fnm | bool
+    - user_install_yarn | bool
+
 - name: Show the derived identity summary
   debug:
     msg:
@@ -154,6 +188,8 @@
       - "Git     : {{ user_firstname }} {{ user_lastname }} <{{ user_email }}>"
       - "SSH key : {{ user_home }}/{{ user_ssh_key_path }} (ed25519)"
       - "fnm     : {{ (user_home ~ '/' ~ user_fnm_install_dir ~ '/fnm') if user_install_fnm | bool else 'skipped' }}"
+      - "Node    : {{ user_node_version if user_install_fnm | bool else 'skipped' }} (via fnm)"
+      - "Yarn    : {{ 'enabled via Corepack' if (user_install_fnm and user_install_yarn) | bool else 'skipped' }}"
 
 - name: Show the public SSH key to register on GitHub / GitLab
   debug:
