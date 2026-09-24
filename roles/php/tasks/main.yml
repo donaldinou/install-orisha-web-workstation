@@ -24,13 +24,90 @@
     filename: php
     state: present
 
-- name: Install PHP versions and extensions (7.4 -> 8.4)
+- name: Build the PHP package list per version (with per-version exclusions)
+  set_fact:
+    php_packages: >-
+      {{
+        php_packages | default([])
+        + ['php' ~ item]
+        + (php_common_extensions
+             | difference(php_excluded_extensions[item] | default([]))
+             | map('regex_replace', '^(.*)$', 'php' ~ item ~ '-\1') | list)
+        + (['php' ~ item ~ '-json'] if item in php_json_versions else [])
+      }}
+  loop: "{{ php_versions }}"
+  loop_control:
+    label: "php{{ item }}"
+
+- name: Install PHP versions and extensions (7.4 -> 8.5)
   apt:
     name: "{{ php_packages }}"
     state: present
     update_cache: yes
 
+- name: Check the current default "php" alternative
+  command: update-alternatives --query php
+  register: php_alt
+  changed_when: false
+  failed_when: false
+
+- name: Set the default system-wide PHP version via update-alternatives
+  # Non-interactive equivalent of "update-alternatives --config php". Only runs
+  # when the current selection differs, so re-runs report no change.
+  command: "update-alternatives --set php /usr/bin/php{{ php_default_version }}"
+  when: >-
+    ('Value: /usr/bin/php' ~ php_default_version) not in (php_alt.stdout | default(''))
+
 - name: Remove the downloaded keyring package
   file:
     path: "{{ php_sury_keyring_deb }}"
     state: absent
+
+# --- Composer (global install as /usr/local/bin/composer) ---------------------
+
+- name: Check whether Composer is already installed
+  stat:
+    path: "{{ php_composer_bin }}"
+  register: composer_bin
+  when: php_install_composer | bool
+
+- name: Download the Composer installer script
+  get_url:
+    url: "{{ php_composer_installer_url }}"
+    dest: /tmp/composer-setup.php
+    mode: "0644"
+  when:
+    - php_install_composer | bool
+    - not composer_bin.stat.exists
+
+- name: Fetch the official installer SHA-384 signature
+  uri:
+    url: "{{ php_composer_sig_url }}"
+    return_content: yes
+  register: composer_sig
+  when:
+    - php_install_composer | bool
+    - not composer_bin.stat.exists
+
+- name: Verify the Composer installer checksum (SHA-384)
+  command: >-
+    php -r "exit(hash_file('sha384', '/tmp/composer-setup.php')
+    === trim('{{ composer_sig.content | default('') }}') ? 0 : 1);"
+  changed_when: false
+  when:
+    - php_install_composer | bool
+    - not composer_bin.stat.exists
+
+- name: Run the Composer installer into /usr/local/bin as "composer"
+  command: >-
+    php /tmp/composer-setup.php
+    --install-dir=/usr/local/bin --filename=composer
+  when:
+    - php_install_composer | bool
+    - not composer_bin.stat.exists
+
+- name: Remove the Composer installer script
+  file:
+    path: /tmp/composer-setup.php
+    state: absent
+  when: php_install_composer | bool

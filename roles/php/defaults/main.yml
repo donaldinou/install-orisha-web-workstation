@@ -15,42 +15,58 @@ php_versions:
   - "8.2"
   - "8.3"
   - "8.4"
+  - "8.5"
 
 # Extensions installed for every version. "json" is handled separately because
 # it no longer exists as a standalone package on PHP >= 8.0 (built into core).
 php_common_extensions:
+  - apcu
   - cli
+  - common
   - bcmath
   - bz2
   - curl
   - dev
   - fpm
   - gd
+  - igbinary
+  - imagick
   - intl
   - mbstring
+  - mcrypt
+  - memcached
   - mysql
   - opcache
+  - redis
   - soap
+  - ssh2
+  - xdebug
   - xml
   - xsl
   - zip
-  - apcu
 
-# Extensions only valid on PHP 7.4 (dropped from core packaging on 8.x).
-php_legacy_extensions:
-  - json
+# Extension only shipped as a standalone package on PHP 7.4 (built into core on
+# 8.x): installed only for the version(s) listed here.
+php_json_versions:
+  - "7.4"
 
-# Built package list:
-#   - the base "phpX.Y" metapackage for each version
-#   - "phpX.Y-<ext>" for every common extension
-#   - "php7.4-json" only for 7.4
-php_packages: >-
-  {{
-    (php_versions | map('regex_replace', '^(.*)$', 'php\1') | list)
-    +
-    (php_versions | product(php_common_extensions)
-       | map('join', '-') | map('regex_replace', '^', 'php') | list)
-    +
-    (['7.4'] | product(php_legacy_extensions)
-       | map('join', '-') | map('regex_replace', '^', 'php') | list)
-  }}
+# Common extensions to EXCLUDE for specific versions, when an extension became a
+# built-in with no standalone package. On PHP 8.5, opcache is native, so there
+# is no php8.5-opcache package.
+php_excluded_extensions:
+  "8.5":
+    - opcache
+
+# Default PHP version for the system-wide "php" command (via update-alternatives).
+php_default_version: "8.4"
+
+# Composer (PHP dependency manager), installed globally as /usr/local/bin/composer
+# using the official installer, with SHA-384 verification of the installer
+# script (the signature is fetched live, never hardcoded, per Composer's docs).
+php_install_composer: true
+php_composer_installer_url: https://getcomposer.org/installer
+php_composer_sig_url: https://composer.github.io/installer.sig
+php_composer_bin: /usr/local/bin/composer
+
+# The package list is built in tasks/main.yml (a loop is clearer and safer than
+# a single dense Jinja expression for per-version exclusions).

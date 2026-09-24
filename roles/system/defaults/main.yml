@@ -34,6 +34,9 @@ system_base_packages:
   - libtool
   - packagekit-command-not-found
   - htop
+  # util-linux-extra: extra util-linux tools (e.g. rename, fallocate, hardlink)
+  # split out of util-linux on recent Ubuntu.
+  - util-linux-extra
 
 # APT components enabled before installing packages.
 # "multiverse" is required for unrar; universe is enabled by default on Ubuntu.

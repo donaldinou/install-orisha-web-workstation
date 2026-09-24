@@ -188,7 +188,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
     ├── system/           # System update + base system tools
     ├── dev_tools/        # Git, CLI tools, Docker, VS Code
     ├── desktop/          # Browsers, media and chat applications
-    ├── php/              # PHP 7.4 -> 8.4 from the Sury official repo
+    ├── php/              # PHP 7.4 -> 8.5 from the Sury official repo
     ├── kiro/             # Kiro IDE install from official .deb (optional APT-hook updater)
     └── workspace/        # immo-facile git workspace (clone + git-flow) via a re-runnable script
 ```
@@ -204,7 +204,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 | `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), fastfetch, gnupg, openssh, etc. |
 | `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; AWS CLI v2 (official installer); Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina, Postman, Flameshot, RedisInsight, MySQL Workbench (Snap); Tor Browser (Flatpak). |
-| `php`          | `php`          | Installs PHP 7.4 → 8.4 (many extensions each) from the Sury official repo. |
+| `php`          | `php`          | Installs PHP 7.4 → 8.5 (many extensions each) from the Sury official repo. |
 | `kiro`         | `kiro`         | Installs the Kiro IDE from the official `.deb` (built-in auto-updater keeps it current). |
 | `workspace`    | `workspace`    | Sets up the immo-facile git workspace (clone repos, git-flow) via a re-runnable script. |
 
@@ -361,17 +361,30 @@ PHP is installed from **Ondřej Surý's official APT repository**
 Ubuntu 24.04 and 26.04 from the same source. The repo is added via its signed
 `debsuryorg-archive-keyring`.
 
-The `php` role installs **six versions side by side** (7.4, 8.0, 8.1, 8.2, 8.3,
-8.4), each with a large set of extensions (`cli`, `bcmath`, `bz2`, `curl`,
-`dev`, `fpm`, `gd`, `intl`, `mbstring`, `mysql`, `opcache`, `soap`, `xml`,
-`xsl`, `zip`, `apcu`). The package list is generated from
-`php_versions × php_common_extensions` (defined in `roles/php/defaults/main.yml`)
-rather than hand-written, so adding a version or an extension is a one-line
-change.
+The `php` role installs **seven versions side by side** (7.4, 8.0, 8.1, 8.2,
+8.3, 8.4, 8.5), each with a large set of extensions. The package list is built
+in `roles/php/tasks/main.yml` from `php_versions × php_common_extensions`
+(defined in `roles/php/defaults/main.yml`) rather than hand-written, so adding a
+version or an extension is a one-line change.
 
-Note: `php-json` is only installed for **7.4** — on PHP 8.0+ the JSON extension
-is built into core and has no standalone package, so including it would break
-the install.
+Per-version specifics (kept in `defaults/main.yml`, so the loop stays generic):
+
+- `php-json` is only installed for **7.4** (`php_json_versions`) — on PHP 8.0+
+  the JSON extension is built into core and has no standalone package.
+- `opcache` is excluded from **8.5** (`php_excluded_extensions`) — on PHP 8.5 it
+  is native, so there is no `php8.5-opcache` package. Including it would break
+  the install.
+
+The **default system-wide `php`** version is set with `update-alternatives`
+(`php_default_version`, `8.4` by default) — the non-interactive equivalent of
+`update-alternatives --config php`. The step only runs when the current
+selection differs, so re-runs report no change.
+
+**Composer** is installed globally as `/usr/local/bin/composer` using the
+official installer, with **SHA-384 verification** of the installer script (the
+signature is fetched live from `composer.github.io/installer.sig`, never
+hardcoded, as Composer's docs require). Toggle with `php_install_composer`.
+Users then update it with `composer self-update`.
 
 ## Kiro IDE (no repo — official .deb)
 
