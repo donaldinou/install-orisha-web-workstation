@@ -1,0 +1,40 @@
+---
+- name: Ensure tools required by the workspace script are installed
+  apt:
+    name: "{{ workspace_required_packages }}"
+    state: present
+  when: workspace_enabled | bool
+
+- name: Install the git workspace setup script (idempotent, re-runnable)
+  copy:
+    src: git-workspace-setup.sh
+    dest: "{{ workspace_script_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+  when: workspace_enabled | bool
+
+- name: Run the workspace setup as the target user
+  # Runs with the target account's SSH key and home. If the key is not yet
+  # registered on GitLab, the script prints instructions and exits 0, so the
+  # play does not fail: the user just re-runs "git-workspace-setup" later.
+  command: "{{ workspace_script_path }}"
+  become: true
+  become_user: "{{ user_account_name }}"
+  register: workspace_setup
+  changed_when: "'workspace ready' in workspace_setup.stdout"
+  failed_when: false
+  when:
+    - workspace_enabled | bool
+    - workspace_run_on_provision | bool
+
+- name: Report the workspace setup outcome
+  debug:
+    msg: >-
+      {{ 'immo-facile workspace ready.'
+         if ('workspace ready' in (workspace_setup.stdout | default('')))
+         else 'Workspace not set up yet: add the user SSH key to GitLab, then run
+               "git-workspace-setup" as ' ~ user_account_name ~ '.' }}
+  when:
+    - workspace_enabled | bool
+    - workspace_run_on_provision | bool

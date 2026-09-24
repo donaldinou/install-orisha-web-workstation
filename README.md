@@ -189,7 +189,8 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
     ├── dev_tools/        # Git, CLI tools, Docker, VS Code
     ├── desktop/          # Browsers, media and chat applications
     ├── php/              # PHP 7.4 -> 8.4 from the Sury official repo
-    └── kiro/             # Kiro IDE install from official .deb (optional APT-hook updater)
+    ├── kiro/             # Kiro IDE install from official .deb (optional APT-hook updater)
+    └── workspace/        # immo-facile git workspace (clone + git-flow) via a re-runnable script
 ```
 
 > `.vault_pass` (the Vault password file) is git-ignored and must never be
@@ -205,6 +206,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina, Postman, Flameshot, RedisInsight, MySQL Workbench (Snap); Tor Browser (Flatpak). |
 | `php`          | `php`          | Installs PHP 7.4 → 8.4 (many extensions each) from the Sury official repo. |
 | `kiro`         | `kiro`         | Installs the Kiro IDE from the official `.deb` (built-in auto-updater keeps it current). |
+| `workspace`    | `workspace`    | Sets up the immo-facile git workspace (clone repos, git-flow) via a re-runnable script. |
 
 Each role is configurable through its `roles/<role>/defaults/main.yml` file
 (package lists, URLs, etc.).
@@ -394,6 +396,35 @@ install with dependency resolution), discovered via Kiro's official stable
 
 For centrally-managed fleets, Kiro also supports self-hosted "managed updates"
 (out of scope here).
+
+## immo-facile git workspace
+
+The `workspace` role prepares the immo-facile git tree in the target account's
+home. Because this depends on the user's SSH key being registered on the
+internal GitLab (`gitlab.immo-facile.com`), the work is done by an idempotent,
+**re-runnable** script (`/usr/local/bin/git-workspace-setup`) rather than by
+hard-failing Ansible tasks.
+
+What the script does (all steps idempotent):
+
+- creates `~/git/immofacile`;
+- trusts the GitLab host key (`ssh-keyscan`, avoids the interactive prompt);
+- **checks SSH access to GitLab first** — if the key is not registered yet, it
+  prints the public key and instructions, then exits cleanly (exit 0) so the
+  provisioning does not fail and the script can simply be re-run later;
+- clones `logiciel` (branch `develop-web`) and `office` (branch `develop`),
+  both `--recursive`;
+- runs `git flow init` with the web prefixes on `logiciel` and defaults on
+  `office`;
+- runs `rsync -avc logiciel/env-development/* ./` inside the workspace.
+
+Guard rails: the script requires `git`, `git-flow`, `rsync` and `ssh`, and
+never proceeds with clones unless GitLab SSH authentication succeeds.
+
+**Prerequisite for the user**: the SSH key generated during provisioning
+(`~/.ssh/id_ed25519.pub`, printed at the end of the run) must be added to the
+user's GitLab account before the workspace can be cloned. Then run
+`git-workspace-setup` (it is safe to re-run at any time).
 
 ## Development
 

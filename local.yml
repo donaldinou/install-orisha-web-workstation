@@ -16,3 +16,5 @@
       tags: [desktop]
     - role: kiro
       tags: [kiro]
+    - role: workspace
+      tags: [workspace]

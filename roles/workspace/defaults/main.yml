@@ -1,0 +1,16 @@
+---
+# immo-facile git workspace setup. Depends on the target user's SSH key being
+# registered on GitLab, so the actual work is done by an idempotent, re-runnable
+# script (git-workspace-setup) rather than by hard failing Ansible tasks.
+workspace_enabled: true
+workspace_script_name: git-workspace-setup
+workspace_script_path: "/usr/local/bin/git-workspace-setup"
+
+# Whether to attempt running the setup during provisioning. If the SSH key is
+# not yet on GitLab, the script exits cleanly and the user re-runs it later.
+workspace_run_on_provision: true
+
+# Tools the workspace script needs (git/git-flow come from dev_tools; rsync here).
+workspace_required_packages:
+  - rsync
+  - openssh-client
