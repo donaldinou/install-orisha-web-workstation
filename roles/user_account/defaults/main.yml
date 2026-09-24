@@ -70,4 +70,15 @@ user_node_version: "lts-latest"
 # Yarn version through the "packageManager" field in package.json.
 user_install_yarn: true
 
+# Miniconda3 (per-user Python/conda distribution), installed into the target
+# account's home from the official Anaconda installer, in silent/batch mode.
+# After install: disable base auto-activation, accept the channel Terms of
+# Service, and update conda itself.
+user_install_miniconda: true
+user_miniconda_install_dir: ".local/share/miniconda3"
+user_miniconda_installer_url: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{ 'aarch64' if ansible_architecture == 'aarch64' else 'x86_64' }}.sh"
+user_miniconda_tos_channels:
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+
 

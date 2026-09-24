@@ -179,6 +179,77 @@
     - user_install_fnm | bool
     - user_install_yarn | bool
 
+# --- Miniconda3 (per-user, silent install) ------------------------------------
+
+- name: Ensure the cache directory exists in the account's home
+  file:
+    path: "{{ user_home }}/.cache"
+    state: directory
+    owner: "{{ user_account_name }}"
+    group: "{{ user_account_name }}"
+    mode: "0755"
+  when: user_install_miniconda | bool
+
+- name: Check whether Miniconda is already installed for the account
+  stat:
+    path: "{{ user_home }}/{{ user_miniconda_install_dir }}/bin/conda"
+  register: miniconda_bin
+  when: user_install_miniconda | bool
+
+- name: Download the Miniconda installer
+  get_url:
+    url: "{{ user_miniconda_installer_url }}"
+    dest: "{{ user_home }}/.cache/miniconda-installer.sh"
+    owner: "{{ user_account_name }}"
+    group: "{{ user_account_name }}"
+    mode: "0755"
+  become: true
+  become_user: "{{ user_account_name }}"
+  when:
+    - user_install_miniconda | bool
+    - not miniconda_bin.stat.exists
+
+- name: Install Miniconda in silent/batch mode
+  command: >-
+    bash {{ user_home }}/.cache/miniconda-installer.sh
+    -b -p {{ user_home }}/{{ user_miniconda_install_dir }}
+  become: true
+  become_user: "{{ user_account_name }}"
+  when:
+    - user_install_miniconda | bool
+    - not miniconda_bin.stat.exists
+
+- name: Remove the Miniconda installer
+  file:
+    path: "{{ user_home }}/.cache/miniconda-installer.sh"
+    state: absent
+  when: user_install_miniconda | bool
+
+- name: Disable conda base auto-activation
+  command: "{{ user_home }}/{{ user_miniconda_install_dir }}/bin/conda config --set auto_activate_base false"
+  become: true
+  become_user: "{{ user_account_name }}"
+  changed_when: false
+  when: user_install_miniconda | bool
+
+- name: Accept the Anaconda channel Terms of Service
+  command: >-
+    {{ user_home }}/{{ user_miniconda_install_dir }}/bin/conda tos accept
+    --override-channels --channel {{ item }}
+  become: true
+  become_user: "{{ user_account_name }}"
+  loop: "{{ user_miniconda_tos_channels }}"
+  changed_when: false
+  when: user_install_miniconda | bool
+
+- name: Update conda itself
+  command: "{{ user_home }}/{{ user_miniconda_install_dir }}/bin/conda update -n base conda --yes"
+  become: true
+  become_user: "{{ user_account_name }}"
+  register: conda_update
+  changed_when: "'All requested packages already installed' not in conda_update.stdout"
+  when: user_install_miniconda | bool
+
 - name: Show the derived identity summary
   debug:
     msg:
@@ -190,6 +261,7 @@
       - "fnm     : {{ (user_home ~ '/' ~ user_fnm_install_dir ~ '/fnm') if user_install_fnm | bool else 'skipped' }}"
       - "Node    : {{ user_node_version if user_install_fnm | bool else 'skipped' }} (via fnm)"
       - "Yarn    : {{ 'enabled via Corepack' if (user_install_fnm and user_install_yarn) | bool else 'skipped' }}"
+      - "Miniconda: {{ (user_home ~ '/' ~ user_miniconda_install_dir) if user_install_miniconda | bool else 'skipped' }}"
 
 - name: Show the public SSH key to register on GitHub / GitLab
   debug:

@@ -88,6 +88,20 @@ other forges. Generation is idempotent: an existing key is **never** regenerated
 or overwritten, so a key already registered on a forge stays valid. The public
 key is printed at the end of the run so it can be added to the forges.
 
+### Miniconda3
+
+Miniconda3 is installed **per-user** into `~/.local/share/miniconda3` from the
+official Anaconda installer (`repo.anaconda.com/miniconda`) in silent/batch mode
+(`-b -p`). Post-install, as the target user:
+
+- `conda config --set auto_activate_base false` (don't auto-activate the base
+  env in every shell);
+- accepts the channel **Terms of Service** for `pkgs/main` and `pkgs/r`
+  (required since the ToS plugin, otherwise conda refuses to touch channels);
+- `conda update -n base conda` to update conda itself.
+
+Toggle with `user_install_miniconda`.
+
 ### Node.js toolchain (fnm + Node + Yarn via Corepack)
 
 The account gets a full per-user Node.js toolchain (nothing system-wide, and not
