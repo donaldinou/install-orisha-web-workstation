@@ -95,12 +95,25 @@ dev_tools_docker_packages:
   - docker-buildx-plugin
   - docker-compose-plugin
 
+# User added to the "docker" group so they can run docker without sudo.
+# Empty -> defaults to the provisioned target account (user_account_name).
+# Override only if a different user should get docker access.
+dev_tools_docker_user: ""
+
 # AWS CLI v2, installed system-wide with the official zip installer (the
 # AWS-recommended method; the apt "awscli" package is v1 and pip is discouraged
 # for v2). Installs to /usr/local/aws-cli with the binary at /usr/local/bin/aws.
 dev_tools_install_awscli: true
 dev_tools_awscli_url: "https://awscli.amazonaws.com/awscli-exe-linux-{{ 'aarch64' if ansible_architecture == 'aarch64' else 'x86_64' }}.zip"
 dev_tools_awscli_bin: /usr/local/bin/aws
+
+# HashiCorp official APT repository (Terraform, and other HashiCorp tools).
+# The GPG key is dearmored to a binary keyring (.gpg), as the official docs do.
+dev_tools_hashicorp_gpg_url: https://apt.releases.hashicorp.com/gpg
+dev_tools_hashicorp_gpg_path: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+dev_tools_hashicorp_apt_url: https://apt.releases.hashicorp.com
+dev_tools_hashicorp_packages:
+  - terraform
 
 # Docker Desktop (GUI). Not available from the APT repository: it ships as a
 # standalone .deb that must be downloaded and installed. It coexists with the

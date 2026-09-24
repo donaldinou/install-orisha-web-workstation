@@ -71,11 +71,18 @@
     state: present
     update_cache: yes
 
-- name: Add the current user to the docker group
+- name: Add the target user to the docker group (so they can run docker)
+  # Adds the provisioned account (user_account_name from the user_account role),
+  # not the person running the installer. Runs here because the docker group is
+  # created by the Docker install just above. The user must log out/in for the
+  # new group membership to take effect.
   user:
-    name: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    name: "{{ dev_tools_docker_user if (dev_tools_docker_user | default('') | length > 0) else user_account_name }}"
     groups: docker
     append: yes
+  when: >-
+    (dev_tools_docker_user | default('') | length > 0)
+    or (user_account_name | default('') | length > 0)
 
 # --- Docker Desktop (standalone .deb, not in the APT repository) --------------
 
@@ -138,6 +145,29 @@
     path: /tmp/aws
     state: absent
   when: dev_tools_install_awscli | bool
+
+# --- HashiCorp repository + Terraform -----------------------------------------
+
+- name: Add HashiCorp's GPG key (dearmored to a binary keyring)
+  # get_url cannot dearmor, so download then dearmor with gpg. "creates" makes
+  # this idempotent.
+  shell: >-
+    curl -fsSL {{ dev_tools_hashicorp_gpg_url }}
+    | gpg --dearmor -o {{ dev_tools_hashicorp_gpg_path }}
+  args:
+    creates: "{{ dev_tools_hashicorp_gpg_path }}"
+
+- name: Add the HashiCorp APT repository
+  apt_repository:
+    repo: "deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }} signed-by={{ dev_tools_hashicorp_gpg_path }}] {{ dev_tools_hashicorp_apt_url }} {{ ansible_distribution_release }} main"
+    filename: hashicorp
+    state: present
+
+- name: Install Terraform (and other HashiCorp tools)
+  apt:
+    name: "{{ dev_tools_hashicorp_packages }}"
+    state: present
+    update_cache: yes
 
 - name: Install VS Code and other classic snaps
   community.general.snap:

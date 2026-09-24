@@ -202,7 +202,7 @@ ansible-playbook local.yml --ask-become-pass --tags dev_tools
 |----------------|----------------|----------------------------------------------------------------------|
 | `user_account` | `user_account` | Derives the identity, creates/updates the target admin account, sets its global Git identity, generates an ed25519 SSH key, and installs the Node toolchain (fnm + Node + Yarn via Corepack). |
 | `system`    | `system`    | `apt update` + `upgrade dist`, then base tools: curl, wget, htop, build-essential, archive tools (zip/unzip/unrar, exfatprogs), network shares (smbclient, cifs-utils), OpenVPN (classic + NetworkManager) and OpenVPN 3 (official repo), fastfetch, gnupg, openssh, etc. |
-| `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; AWS CLI v2 (official installer); Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
+| `dev_tools` | `dev_tools` | Git & friends from the **git-core PPA** (git, git-extras, git-flow, git-lfs); DevOps/network CLI (jq, nmap, net-tools, traceroute, sshfs, mussh, gdebi...); Ansible (kept as a tool, from the Ansible PPA); Python stack (python3, python3-dev, virtualenv, pip, pipx); build/dev tools (gcc, make, autoconf, meld, imagemagick, adb...); dev libraries (`-dev` headers) and iOS device support; AWS CLI v2 (official installer); Terraform (HashiCorp official repo); Docker CE + Compose v2 (official repo); VS Code (classic Snap). |
 | `desktop`   | `desktop`   | VLC, Inkscape, GIMP, FileZilla, Lynx, Epiphany (APT); Google Chrome, Brave, Opera, Microsoft Edge, Firefox, Vivaldi, AnyDesk (official APT repos); Slack, Discord, Chromium, Remmina, Postman, Flameshot, RedisInsight, MySQL Workbench (Snap); Tor Browser (Flatpak). |
 | `php`          | `php`          | Installs PHP 7.4 → 8.5 (many extensions each) from the Sury official repo. |
 | `kiro`         | `kiro`         | Installs the Kiro IDE from the official `.deb` (built-in auto-updater keeps it current). |
@@ -217,7 +217,10 @@ Docker Engine is installed from the **official Docker repository**, not from the
 Ubuntu packages: `docker-ce`, `docker-ce-cli`, `containerd.io`,
 `docker-buildx-plugin`, `docker-compose-plugin`. Compose v2 is provided via
 `docker-compose-plugin`, so the command is `docker compose` (not
-`docker-compose`). The current user is added to the `docker` group.
+`docker-compose`). The **target account** (the provisioned user, not the
+installer) is added to the `docker` group so it can run `docker` without sudo —
+override with `dev_tools_docker_user` if a different user needs access. The user
+must log out and back in for the new group membership to take effect.
 
 **AWS CLI v2** is installed system-wide with the **official zip installer**
 (`awscli.amazonaws.com/awscli-exe-linux-*.zip`), the method recommended by AWS —
@@ -252,6 +255,15 @@ Note on the repository suite: OpenVPN publishes per-LTS suites and may lag just
 after a brand-new Ubuntu release. The repo suite defaults to the machine's own
 codename (`system_openvpn3_distro`); override it to the latest supported LTS if
 the repository has no suite for the running release yet.
+
+## Terraform (HashiCorp official repository)
+
+Terraform is installed from **HashiCorp's official APT repository**
+(`apt.releases.hashicorp.com`): the GPG key is downloaded and dearmored to a
+binary keyring (`/usr/share/keyrings/hashicorp-archive-keyring.gpg`), the signed
+repo is added, then `terraform` is installed via `apt`. The package list
+(`dev_tools_hashicorp_packages`) makes it easy to add other HashiCorp tools
+(vault, packer, ...) from the same repo.
 
 ## Git (git-core PPA)
 
