@@ -386,6 +386,12 @@ signature is fetched live from `composer.github.io/installer.sig`, never
 hardcoded, as Composer's docs require). Toggle with `php_install_composer`.
 Users then update it with `composer self-update`.
 
+**Symfony CLI** is installed from Symfony's **official APT repository** (hosted
+on Cloudsmith). The official method's setup script configures the repository
+(run once, idempotent on the sources list), then `symfony-cli` is installed via
+`apt` — so updates flow through normal system updates. Toggle with
+`php_install_symfony_cli`.
+
 ## Kiro IDE (no repo — official .deb)
 
 Kiro (kiro.dev) has no official APT repository. The `kiro` role installs it from

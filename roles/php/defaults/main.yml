@@ -68,5 +68,11 @@ php_composer_installer_url: https://getcomposer.org/installer
 php_composer_sig_url: https://composer.github.io/installer.sig
 php_composer_bin: /usr/local/bin/composer
 
+# Symfony CLI, installed from Symfony's official APT repository (Cloudsmith).
+# The official method runs a setup script that configures the repo, then apt.
+php_install_symfony_cli: true
+php_symfony_repo_setup_url: "https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh"
+php_symfony_repo_list: /etc/apt/sources.list.d/symfony-stable.list
+
 # The package list is built in tasks/main.yml (a loop is clearer and safer than
 # a single dense Jinja expression for per-version exclusions).

@@ -111,3 +111,29 @@
     path: /tmp/composer-setup.php
     state: absent
   when: php_install_composer | bool
+
+# --- Symfony CLI (official Cloudsmith APT repository) -------------------------
+
+- name: Check whether the Symfony APT repository is already configured
+  stat:
+    path: "{{ php_symfony_repo_list }}"
+  register: symfony_repo
+  when: php_install_symfony_cli | bool
+
+- name: Configure the Symfony CLI APT repository (official setup script)
+  # The official method: this script only sets up the Cloudsmith-hosted APT
+  # repo; the CLI itself is then installed via apt below. Run once (idempotent
+  # on the presence of the sources list).
+  shell: "curl -1sLf '{{ php_symfony_repo_setup_url }}' | bash"
+  args:
+    executable: /bin/bash
+  when:
+    - php_install_symfony_cli | bool
+    - not symfony_repo.stat.exists
+
+- name: Install the Symfony CLI
+  apt:
+    name: symfony-cli
+    state: present
+    update_cache: yes
+  when: php_install_symfony_cli | bool
